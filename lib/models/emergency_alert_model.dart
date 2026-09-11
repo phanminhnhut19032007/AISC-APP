@@ -8,6 +8,7 @@ class EmergencyAlertModel {
   final String? note;
   final DateTime timestamp;
   String status; // ACTIVE, ACKNOWLEDGED, RESOLVED
+  String? acknowledgedBy;
 
   EmergencyAlertModel({
     required this.id,
@@ -19,6 +20,7 @@ class EmergencyAlertModel {
     this.note,
     required this.timestamp,
     this.status = 'ACTIVE',
+    this.acknowledgedBy,
   });
 
   bool get isAcknowledged => status == 'ACKNOWLEDGED' || status == 'RESOLVED';
@@ -35,6 +37,7 @@ class EmergencyAlertModel {
         'description': note,
         'note': note,
         'status': status,
+        'acknowledged_by': acknowledgedBy,
         'created_at': timestamp.toIso8601String(),
         'timestamp': timestamp.toIso8601String(),
       };
@@ -57,6 +60,7 @@ class EmergencyAlertModel {
       timestamp: parseDate(json['created_at'] ?? json['timestamp']),
       status: json['status']?.toString().toUpperCase() ??
           (json['is_acknowledged'] == true ? 'ACKNOWLEDGED' : 'ACTIVE'),
+      acknowledgedBy: json['acknowledged_by'] ?? json['acknowledgedBy'],
     );
   }
 }

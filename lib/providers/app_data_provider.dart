@@ -533,6 +533,42 @@ class AppDataProvider with ChangeNotifier {
     }
   }
 
+  static List<EmergencyAlertModel> get defaultDemoAlerts => [
+        EmergencyAlertModel(
+          id: 'demo_alert_1',
+          roomCode: '101',
+          senderName: 'Trần Thị Mai',
+          senderPhone: '0912345001',
+          emergencyType: 'FIRE',
+          note: 'Có khói bốc lên gần ban công',
+          status: 'ACKNOWLEDGED',
+          acknowledgedBy: 'Nguyễn Văn Chủ Trọ',
+          timestamp: DateTime(2026, 9, 11, 17, 14, 33),
+        ),
+        EmergencyAlertModel(
+          id: 'demo_alert_2',
+          roomCode: '101',
+          senderName: 'Trần Thị Mai',
+          senderPhone: '0912345001',
+          emergencyType: 'GAS_LEAK',
+          note: 'Mùi gas nồng nặc ở khu vực bếp',
+          status: 'RESOLVED',
+          acknowledgedBy: 'Nguyễn Văn Chủ Trọ',
+          timestamp: DateTime(2026, 9, 9, 21, 14, 33),
+        ),
+        EmergencyAlertModel(
+          id: 'demo_alert_3',
+          roomCode: '201',
+          senderName: 'Lê Văn Nam',
+          senderPhone: '0912345002',
+          emergencyType: 'ELEVATOR',
+          note: 'Thang máy tầng 2 bị kẹt cửa',
+          status: 'RESOLVED',
+          acknowledgedBy: 'Nguyễn Văn Chủ Trọ',
+          timestamp: DateTime(2026, 9, 6, 21, 14, 33),
+        ),
+      ];
+
   Future<void> loadEmergencyAlerts() async {
     try {
       // 1. Fetch from live API
@@ -551,6 +587,8 @@ class AppDataProvider with ChangeNotifier {
         if (alertsJson != null) {
           final List list = jsonDecode(alertsJson);
           _emergencyAlerts = list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
+        } else {
+          _emergencyAlerts = List.from(defaultDemoAlerts);
         }
       }
 
@@ -571,8 +609,10 @@ class AppDataProvider with ChangeNotifier {
         if (alertsJson != null) {
           final List list = jsonDecode(alertsJson);
           _emergencyAlerts = list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
-          notifyListeners();
+        } else {
+          _emergencyAlerts = List.from(defaultDemoAlerts);
         }
+        notifyListeners();
       } catch (_) {}
     }
   }

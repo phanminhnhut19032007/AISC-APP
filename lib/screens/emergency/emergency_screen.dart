@@ -20,6 +20,90 @@ class IncidentTypeOption {
     required this.label,
     required this.icon,
   });
+
+  static const List<IncidentTypeOption> all = [
+    IncidentTypeOption(
+      id: 'FIRE',
+      label: 'Hỏa hoạn / Cháy nổ',
+      icon: Icons.local_fire_department_rounded,
+    ),
+    IncidentTypeOption(
+      id: 'THEFT',
+      label: 'Đột nhập / Trộm cắp',
+      icon: Icons.gpp_maybe_outlined,
+    ),
+    IncidentTypeOption(
+      id: 'MEDICAL',
+      label: 'Cấp cứu y tế',
+      icon: Icons.monitor_heart_outlined,
+    ),
+    IncidentTypeOption(
+      id: 'GAS_LEAK',
+      label: 'Rò rỉ Gas / Chập điện',
+      icon: Icons.bolt_rounded,
+    ),
+    IncidentTypeOption(
+      id: 'ELEVATOR',
+      label: 'Kẹt thang máy / Khóa kẹt',
+      icon: Icons.error_outline_rounded,
+    ),
+    IncidentTypeOption(
+      id: 'OTHER',
+      label: 'Sự cố nguy cấp khác',
+      icon: Icons.warning_amber_rounded,
+    ),
+  ];
+
+  static IncidentTypeOption getTypeConfig(String? typeId) {
+    if (typeId == null || typeId.isEmpty) {
+      return const IncidentTypeOption(
+        id: 'OTHER',
+        label: 'Sự cố nguy cấp khác',
+        icon: Icons.warning_amber_rounded,
+      );
+    }
+    final upper = typeId.toUpperCase();
+    if (upper == 'FIRE') {
+      return const IncidentTypeOption(
+        id: 'FIRE',
+        label: 'Hỏa hoạn / Cháy nổ',
+        icon: Icons.local_fire_department_rounded,
+      );
+    }
+    if (upper == 'THEFT' || upper == 'BURGLARY') {
+      return const IncidentTypeOption(
+        id: 'THEFT',
+        label: 'Đột nhập / Trộm cắp',
+        icon: Icons.gpp_maybe_outlined,
+      );
+    }
+    if (upper == 'MEDICAL') {
+      return const IncidentTypeOption(
+        id: 'MEDICAL',
+        label: 'Cấp cứu y tế',
+        icon: Icons.monitor_heart_outlined,
+      );
+    }
+    if (upper == 'GAS_LEAK' || upper == 'GAS_ELECTRIC') {
+      return const IncidentTypeOption(
+        id: 'GAS_LEAK',
+        label: 'Rò rỉ Gas / Chập điện',
+        icon: Icons.bolt_rounded,
+      );
+    }
+    if (upper == 'ELEVATOR') {
+      return const IncidentTypeOption(
+        id: 'ELEVATOR',
+        label: 'Kẹt thang máy / Khóa kẹt',
+        icon: Icons.error_outline_rounded,
+      );
+    }
+    return const IncidentTypeOption(
+      id: 'OTHER',
+      label: 'Sự cố nguy cấp khác',
+      icon: Icons.warning_amber_rounded,
+    );
+  }
 }
 
 class EmergencyScreen extends StatefulWidget {
@@ -37,16 +121,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
   late Animation<double> _pulseScale;
   late Animation<double> _glowPulse;
   
-  String _selectedIncidentType = 'other';
+  String _selectedIncidentType = 'FIRE';
   bool _isSending = false;
 
-  final List<IncidentTypeOption> _incidentTypes = const [
-    IncidentTypeOption(id: 'fire', label: 'Hỏa hoạn / Cháy nổ', icon: Icons.local_fire_department_outlined),
-    IncidentTypeOption(id: 'burglary', label: 'Đột nhập / Trộm cắp', icon: Icons.security_rounded),
-    IncidentTypeOption(id: 'medical', label: 'Cấp cứu y tế', icon: Icons.favorite_border_rounded),
-    IncidentTypeOption(id: 'gas_electric', label: 'Rò rỉ Gas / Chập điện', icon: Icons.bolt_rounded),
-    IncidentTypeOption(id: 'other', label: 'Sự cố nguy cấp khác', icon: Icons.warning_amber_rounded),
-  ];
+  static List<IncidentTypeOption> get _incidentTypes => IncidentTypeOption.all;
+  static IncidentTypeOption getTypeConfig(String? typeId) => IncidentTypeOption.getTypeConfig(typeId);
 
   @override
   void initState() {
@@ -229,7 +308,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                       crossAxisCount: isWide ? 3 : 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      mainAxisExtent: 64,
+                      mainAxisExtent: 68,
                     ),
                     itemCount: _incidentTypes.length,
                     itemBuilder: (context, index) {
@@ -241,45 +320,47 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                           HapticFeedback.selectionClick();
                           setState(() => _selectedIncidentType = type.id);
                         },
-                        scaleDown: 0.95,
+                        scaleDown: 0.96,
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFFDC2626) : const Color(0xFFE2E8F0),
-                              width: isSelected ? 2 : 1,
+                              color: isSelected ? const Color(0xFFEF4444) : const Color(0xFFE2E8F0),
+                              width: isSelected ? 2.0 : 1.2,
                             ),
                           ),
                           child: Row(
                             children: [
                               Container(
-                                width: 34,
-                                height: 34,
+                                width: 38,
+                                height: 38,
                                 decoration: BoxDecoration(
                                   color: isSelected ? const Color(0xFFDC2626) : Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: isSelected ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: isSelected
+                                      ? null
+                                      : Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    type.icon,
+                                    color: isSelected ? Colors.white : const Color(0xFF475569),
+                                    size: 20,
                                   ),
                                 ),
-                                child: Icon(
-                                  type.icon,
-                                  color: isSelected ? Colors.white : const Color(0xFF475569),
-                                  size: 18,
-                                ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   type.label,
                                   style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                    color: isSelected ? const Color(0xFFB91C1C) : const Color(0xFF334155),
-                                    height: 1.2,
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                                    color: isSelected ? const Color(0xFF991B1B) : const Color(0xFF1E293B),
+                                    height: 1.25,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -638,36 +719,74 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
               ),
             )
           else
-            ListView.separated(
+            ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: alerts.length,
-              separatorBuilder: (_, __) => const Divider(height: 16, color: Color(0xFFF1F5F9)),
               itemBuilder: (ctx, idx) {
                 final item = alerts[idx];
-                final dateStr = DateFormat('HH:mm:ss - dd/MM/yyyy').format(item.timestamp);
+                final typeConfig = getTypeConfig(item.emergencyType);
+                final dateStr = DateFormat('HH:mm:ss d/M/yyyy').format(item.timestamp);
+                final isAct = item.isActive;
+                final isAck = item.status == 'ACKNOWLEDGED';
+
+                // Status Badge configuration matching Web STATUS_BADGE
+                String statusLabel;
+                Color badgeBg;
+                Color badgeBorder;
+                Color badgeTextColor;
+
+                if (isAct) {
+                  statusLabel = 'Đang báo động';
+                  badgeBg = const Color(0xFFFEE2E2);
+                  badgeBorder = const Color(0xFFFECACA);
+                  badgeTextColor = const Color(0xFFDC2626);
+                } else if (isAck) {
+                  statusLabel = 'Chủ trọ đã tiếp nhận';
+                  badgeBg = const Color(0xFFDBEAFE);
+                  badgeBorder = const Color(0xFFBFDBFE);
+                  badgeTextColor = const Color(0xFF1D4ED8);
+                } else {
+                  statusLabel = 'Đã xử lý an toàn';
+                  badgeBg = const Color(0xFFD1FAE5);
+                  badgeBorder = const Color(0xFFA7F3D0);
+                  badgeTextColor = const Color(0xFF047857);
+                }
 
                 return Container(
-                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: item.isAcknowledged ? const Color(0xFFF8FAFC) : const Color(0xFFFEF2F2),
-                    borderRadius: BorderRadius.circular(10),
+                    color: isAct ? const Color(0xFFFEF2F2) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: item.isAcknowledged ? const Color(0xFFE2E8F0) : const Color(0xFFFECACA),
+                      color: isAct ? const Color(0xFFFECACA) : const Color(0xFFE2E8F0),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Left Incident Type Icon
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: item.isAcknowledged ? const Color(0xFFE2E8F0) : const Color(0xFFEF4444),
-                          borderRadius: BorderRadius.circular(8),
+                          color: isAct ? const Color(0xFFDC2626) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: SirenIcon(
-                          color: item.isAcknowledged ? const Color(0xFF64748B) : Colors.white,
-                          size: 20,
+                        child: Center(
+                          child: Icon(
+                            typeConfig.icon,
+                            color: isAct ? Colors.white : const Color(0xFF475569),
+                            size: 22,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -675,46 +794,111 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // 1. Title + Status Badge
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'Phòng #${item.roomCode} - ${item.senderName}',
-                                  style: const TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
+                                Expanded(
+                                  child: Text(
+                                    'Phòng #${item.roomCode} • ${typeConfig.label}',
+                                    style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF0F172A),
+                                    ),
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
                                   decoration: BoxDecoration(
-                                    color: item.isAcknowledged ? const Color(0xFFE2E8F0) : const Color(0xFFFEE2E2),
-                                    borderRadius: BorderRadius.circular(4),
+                                    color: badgeBg,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: badgeBorder),
                                   ),
                                   child: Text(
-                                    item.isAcknowledged ? 'ĐÃ XỬ LÝ' : 'KHẨN CẤP',
+                                    statusLabel,
                                     style: TextStyle(
-                                      color: item.isAcknowledged ? const Color(0xFF475569) : const Color(0xFFDC2626),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
+                                      color: badgeTextColor,
+                                      fontSize: 10.5,
+                                      fontWeight: isAct ? FontWeight.w900 : FontWeight.w700,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            if (item.note != null && item.note!.isNotEmpty) ...[
-                              Text(
-                                'Nội dung: ${item.note}',
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF334155), fontWeight: FontWeight.w600),
+                            const SizedBox(height: 5),
+
+                            // 2. Sender Information & Note
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  const TextSpan(
+                                    text: 'Người gửi: ',
+                                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                  ),
+                                  TextSpan(
+                                    text: item.senderName,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF334155),
+                                    ),
+                                  ),
+                                  if (item.senderPhone != null && item.senderPhone!.isNotEmpty)
+                                    TextSpan(
+                                      text: ' (${item.senderPhone})',
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                    ),
+                                  if (item.note != null && item.note!.trim().isNotEmpty) ...[
+                                    const TextSpan(
+                                      text: ' — ',
+                                      style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                                    ),
+                                    TextSpan(
+                                      text: '"${item.note!.trim()}"',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
-                              const SizedBox(height: 3),
-                            ],
-                            Text(
-                              dateStr,
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                             ),
+                            const SizedBox(height: 5),
+
+                            // 3. Timestamp and Acknowledged by line
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time_rounded, size: 12.5, color: Color(0xFF94A3B8)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  dateStr,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF94A3B8),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (item.acknowledgedBy != null && item.acknowledgedBy!.isNotEmpty) ...[
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      '• Đã tiếp nhận bởi: ${item.acknowledgedBy}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF2563EB),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+
+                            // 4. Actions for Landlord
                             if (isOwner) ...[
                               const SizedBox(height: 10),
                               Wrap(
@@ -731,7 +915,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                         minimumSize: Size.zero,
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                       icon: const Icon(Icons.phone_rounded, size: 13),
                                       label: Text('Gọi ${item.senderPhone}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
@@ -746,11 +930,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         minimumSize: Size.zero,
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                       onPressed: () async {
                                         await data.acknowledgeEmergencyAlert(item.id);
-                                        if (context.mounted) {
+                                        if (mounted) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             const SnackBar(content: Text('Đã xác nhận tiếp nhận tin khẩn cấp!')),
                                           );
@@ -761,17 +945,17 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                                   if (item.status == 'ACKNOWLEDGED')
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF16A34A),
+                                        backgroundColor: const Color(0xFF059669),
                                         foregroundColor: Colors.white,
                                         elevation: 0,
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         minimumSize: Size.zero,
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
                                       onPressed: () async {
                                         await data.resolveEmergencyAlert(item.id);
-                                        if (context.mounted) {
+                                        if (mounted) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             const SnackBar(content: Text('Đã đánh dấu xử lý xong sự cố khẩn cấp!')),
                                           );
@@ -870,11 +1054,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
               final roomCode = auth.tenantRoomCode ?? '101';
               final senderName = user?.fullName ?? 'Tran Thi Mai';
               
-              String backendType = 'OTHER';
-              if (selectedType.id == 'fire') backendType = 'FIRE';
-              if (selectedType.id == 'burglary') backendType = 'THEFT';
-              if (selectedType.id == 'medical') backendType = 'MEDICAL';
-              if (selectedType.id == 'gas_electric') backendType = 'GAS_LEAK';
+              final backendType = selectedType.id;
 
               final combinedNote = _noteCtrl.text.trim().isNotEmpty
                   ? _noteCtrl.text.trim()
