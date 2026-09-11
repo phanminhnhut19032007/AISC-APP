@@ -23,6 +23,19 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final auth = context.read<AuthProvider>();
+      final data = context.read<AppDataProvider>();
+      if (auth.currentUser?.isOwner ?? true) {
+        data.startEmergencyPolling();
+      }
+    });
+  }
+
   void _onTabSelected(int index) {
     if (_currentIndex != index) {
       HapticFeedback.selectionClick();

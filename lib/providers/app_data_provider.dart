@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/api_constants.dart';
 import '../models/building_model.dart';
@@ -33,6 +35,8 @@ class AppDataProvider with ChangeNotifier {
   final List<UniPackCartItem> _cart = [];
   List<EmergencyAlertModel> _emergencyAlerts = [];
   EmergencyAlertModel? _activeEmergencyModal;
+  Timer? _emergencyPollingTimer;
+  bool _isPollingEmergency = false;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -477,12 +481,69 @@ class AppDataProvider with ChangeNotifier {
   }
 
   // Emergency SOS Methods (Real-time Live API & Web Sync)
+  void startEmergencyPolling() {
+    _emergencyPollingTimer?.cancel();
+    // Poll every 3.5 seconds matching web's 4s interval for instant sync
+    _emergencyPollingTimer = Timer.periodic(const Duration(milliseconds: 3500), (_) {
+      checkActiveEmergencyLive();
+    });
+    checkActiveEmergencyLive();
+  }
+
+  void stopEmergencyPolling() {
+    _emergencyPollingTimer?.cancel();
+    _emergencyPollingTimer = null;
+  }
+
+  Future<void> checkActiveEmergencyLive() async {
+    if (_isPollingEmergency) return;
+    _isPollingEmergency = true;
+
+    try {
+      final activeList = await _emergencyService.getActiveEmergencies();
+
+      if (activeList.isNotEmpty) {
+        final newestAlert = activeList.first;
+        // If there is a new active emergency and modal is not displaying it yet
+        if (_activeEmergencyModal?.id != newestAlert.id) {
+          _activeEmergencyModal = newestAlert;
+          HapticFeedback.heavyImpact();
+
+          // Also reload history so drawer badge and emergency history list update
+          final apiAlerts = await _emergencyService.getEmergencyHistory();
+          if (apiAlerts.isNotEmpty) {
+            _emergencyAlerts = apiAlerts;
+          }
+          notifyListeners();
+        }
+      } else {
+        // No active emergencies on server (e.g. was resolved or acknowledged)
+        if (_activeEmergencyModal != null) {
+          _activeEmergencyModal = null;
+          final apiAlerts = await _emergencyService.getEmergencyHistory();
+          if (apiAlerts.isNotEmpty) {
+            _emergencyAlerts = apiAlerts;
+          }
+          notifyListeners();
+        }
+      }
+    } catch (_) {
+    } finally {
+      _isPollingEmergency = false;
+    }
+  }
+
   Future<void> loadEmergencyAlerts() async {
     try {
       // 1. Fetch from live API
       final apiAlerts = await _emergencyService.getEmergencyHistory();
       if (apiAlerts.isNotEmpty) {
         _emergencyAlerts = apiAlerts;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'emergency_sos_alerts',
+          jsonEncode(_emergencyAlerts.map((e) => e.toJson()).toList()),
+        );
       } else {
         // Fallback to local storage if API is empty
         final prefs = await SharedPreferences.getInstance();
@@ -497,6 +558,8 @@ class AppDataProvider with ChangeNotifier {
       final activeList = await _emergencyService.getActiveEmergencies();
       if (activeList.isNotEmpty) {
         _activeEmergencyModal = activeList.first;
+      } else {
+        _activeEmergencyModal = null;
       }
 
       notifyListeners();
@@ -615,5 +678,11 @@ class AppDataProvider with ChangeNotifier {
   void dismissActiveEmergencyModal() {
     _activeEmergencyModal = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    stopEmergencyPolling();
+    super.dispose();
   }
 }

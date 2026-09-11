@@ -39,17 +39,24 @@ class EmergencyAlertModel {
         'timestamp': timestamp.toIso8601String(),
       };
 
-  factory EmergencyAlertModel.fromJson(Map<String, dynamic> json) => EmergencyAlertModel(
-        id: json['id']?.toString() ?? '',
-        senderName: json['sender_name'] ?? json['senderName'] ?? 'Cư dân',
-        senderPhone: json['sender_phone'] ?? json['senderPhone'],
-        roomCode: json['room_number']?.toString() ?? json['room_code']?.toString() ?? '101',
-        buildingName: json['building_name'] ?? json['buildingName'] ?? 'Tòa nhà REASY',
-        emergencyType: json['emergency_type'] ?? 'OTHER',
-        note: json['description'] ?? json['note'],
-        timestamp: json['created_at'] != null
-            ? DateTime.parse(json['created_at'])
-            : (json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now()),
-        status: json['status'] ?? (json['is_acknowledged'] == true ? 'ACKNOWLEDGED' : 'ACTIVE'),
-      );
+  factory EmergencyAlertModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      if (val is DateTime) return val;
+      return DateTime.tryParse(val.toString()) ?? DateTime.now();
+    }
+
+    return EmergencyAlertModel(
+      id: json['id']?.toString() ?? '',
+      senderName: json['sender_name'] ?? json['senderName'] ?? 'Cư dân',
+      senderPhone: json['sender_phone'] ?? json['senderPhone'],
+      roomCode: json['room_number']?.toString() ?? json['room_code']?.toString() ?? '101',
+      buildingName: json['building_name'] ?? json['buildingName'] ?? 'Tòa nhà REASY',
+      emergencyType: json['emergency_type']?.toString().toUpperCase() ?? 'OTHER',
+      note: json['description'] ?? json['note'],
+      timestamp: parseDate(json['created_at'] ?? json['timestamp']),
+      status: json['status']?.toString().toUpperCase() ??
+          (json['is_acknowledged'] == true ? 'ACKNOWLEDGED' : 'ACTIVE'),
+    );
+  }
 }

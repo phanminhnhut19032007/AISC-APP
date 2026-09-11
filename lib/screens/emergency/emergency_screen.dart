@@ -63,6 +63,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
     _glowPulse = Tween<double>(begin: 0.25, end: 0.65).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AppDataProvider>().loadEmergencyAlerts();
+    });
   }
 
   @override

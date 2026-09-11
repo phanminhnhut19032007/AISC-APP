@@ -24,15 +24,33 @@ class EmergencyService {
   }
 
   Future<List<EmergencyAlertModel>> getActiveEmergencies() async {
-    final response = await _api.get(ApiConstants.emergencyActive);
-    final List list = response.data is List ? response.data : [];
-    return list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
+    try {
+      final response = await _api.get(ApiConstants.emergencyActive);
+      final raw = response.data;
+      final List list = raw is List
+          ? raw
+          : (raw is Map && raw['data'] is List ? raw['data'] : []);
+      return list
+          .map((item) => EmergencyAlertModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<List<EmergencyAlertModel>> getEmergencyHistory() async {
-    final response = await _api.get(ApiConstants.emergencyList);
-    final List list = response.data is List ? response.data : [];
-    return list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
+    try {
+      final response = await _api.get(ApiConstants.emergencyList);
+      final raw = response.data;
+      final List list = raw is List
+          ? raw
+          : (raw is Map && raw['data'] is List ? raw['data'] : []);
+      return list
+          .map((item) => EmergencyAlertModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> acknowledgeEmergency(String alertId) async {
