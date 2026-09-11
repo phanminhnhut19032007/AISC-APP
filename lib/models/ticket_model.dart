@@ -14,6 +14,7 @@ class TicketModel {
   // Attached UI helper fields
   String? roomNumber;
   String? tenantName;
+  String? buildingName;
 
   TicketModel({
     required this.id,
@@ -29,6 +30,7 @@ class TicketModel {
     this.createdAt,
     this.roomNumber,
     this.tenantName,
+    this.buildingName,
   });
 
   factory TicketModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class TicketModel {
       createdAt: json['created_at'],
       roomNumber: json['room_number']?.toString(),
       tenantName: json['tenant_name'],
+      buildingName: json['building_name'],
     );
   }
 

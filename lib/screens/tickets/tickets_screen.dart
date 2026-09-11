@@ -64,11 +64,13 @@ class _TicketsScreenState extends State<TicketsScreen> {
                   children: [
                     _buildFilterChip('Tất cả (${data.tickets.length})', 'ALL'),
                     const SizedBox(width: 8),
-                    _buildFilterChip('Chờ tiếp nhận (${data.tickets.where((t) => t.status == "OPEN").length})', 'OPEN'),
+                    _buildFilterChip('Mới (${data.tickets.where((t) => t.status == "OPEN").length})', 'OPEN'),
                     const SizedBox(width: 8),
-                    _buildFilterChip('Đang sửa (${data.tickets.where((t) => t.status == "IN_PROGRESS").length})', 'IN_PROGRESS'),
+                    _buildFilterChip('Đã phân công (${data.tickets.where((t) => t.status == "ASSIGNED").length})', 'ASSIGNED'),
                     const SizedBox(width: 8),
-                    _buildFilterChip('Đã xử lý (${data.tickets.where((t) => t.status == "CLOSED").length})', 'CLOSED'),
+                    _buildFilterChip('Đang xử lý (${data.tickets.where((t) => t.status == "IN_PROGRESS").length})', 'IN_PROGRESS'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Hoàn thành (${data.tickets.where((t) => t.status == "CLOSED").length})', 'CLOSED'),
                   ],
                 ),
               ),
@@ -153,18 +155,43 @@ class _TicketsScreenState extends State<TicketsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Title + Status
+          // Header: Title + Room/Building + Status
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  ticket.title,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ticket.title,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        const Icon(Icons.meeting_room_outlined, size: 13, color: Color(0xFF4F46E5)),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Phòng #${ticket.roomNumber ?? "—"}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4F46E5)),
+                        ),
+                        if (ticket.buildingName != null && ticket.buildingName!.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '• ${ticket.buildingName}',
+                            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 8),
               StatusBadge.ticket(ticket.status),
             ],
           ),
@@ -229,27 +256,42 @@ class _TicketsScreenState extends State<TicketsScreen> {
                   OutlinedButton.icon(
                     onPressed: () => data.updateTicketStatus(
                       ticketId: ticket.id,
+                      status: 'ASSIGNED',
+                    ),
+                    icon: const Icon(Icons.assignment_ind_rounded, size: 15),
+                    label: const Text('Phân công', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF2563EB),
+                      side: const BorderSide(color: Color(0xFF2563EB)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    ),
+                  ),
+                if (ticket.status == 'ASSIGNED')
+                  OutlinedButton.icon(
+                    onPressed: () => data.updateTicketStatus(
+                      ticketId: ticket.id,
                       status: 'IN_PROGRESS',
                     ),
-                    icon: const Icon(Icons.play_arrow_rounded, size: 16),
-                    label: const Text('Tiếp nhận sửa', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 15),
+                    label: const Text('Bắt đầu xử lý', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: const Color(0xFF7C3AED),
+                      side: const BorderSide(color: Color(0xFF7C3AED)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     ),
                   ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => _showCloseTicketDialog(context, ticket, data),
-                  icon: const Icon(Icons.check_rounded, size: 16),
-                  label: const Text('Hoàn tất sửa', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.check_rounded, size: 15),
+                  label: const Text('Hoàn tất sửa', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.success,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     elevation: 0,
                   ),
                 ),

@@ -28,6 +28,7 @@ class AppDataProvider with ChangeNotifier {
   List<BuildingModel> _buildings = [];
   BuildingModel? _selectedBuilding;
   List<RoomModel> _rooms = [];
+  List<RoomModel> _allRooms = [];
   List<InvoiceModel> _invoices = [];
   List<TicketModel> _tickets = [];
   List<AppNotificationModel> _notifications = [];
@@ -47,6 +48,7 @@ class AppDataProvider with ChangeNotifier {
   List<BuildingModel> get buildings => _buildings;
   BuildingModel? get selectedBuilding => _selectedBuilding;
   List<RoomModel> get rooms => _rooms;
+  List<RoomModel> get allRooms => _allRooms;
   List<InvoiceModel> get invoices => _invoices;
   List<TicketModel> get tickets => _tickets;
   List<AppNotificationModel> get notifications => _notifications;
@@ -102,6 +104,17 @@ class AppDataProvider with ChangeNotifier {
   Future<void> fetchBuildings({bool? includeDeleted}) async {
     final useDeleted = includeDeleted ?? _showDeletedBuildings;
     _buildings = await _buildingService.getBuildings(includeDeleted: useDeleted);
+
+    // Load all rooms across all buildings for cross-reference in invoices & tickets
+    final List<RoomModel> allRoomsList = [];
+    for (final b in _buildings) {
+      try {
+        final r = await _buildingService.getRoomsByBuilding(b.id);
+        allRoomsList.addAll(r);
+      } catch (_) {}
+    }
+    _allRooms = allRoomsList;
+
     if (_buildings.isNotEmpty) {
       if (_selectedBuilding == null || !_buildings.any((b) => b.id == _selectedBuilding!.id)) {
         _selectedBuilding = _buildings.first;
@@ -221,7 +234,21 @@ class AppDataProvider with ChangeNotifier {
       year: year,
       includeDeleted: useDeleted,
     );
-    _invoices.sort((a, b) => b.month.compareTo(a.month));
+
+    // Cross-reference roomNumber and buildingName from all loaded rooms & buildings
+    for (final inv in _invoices) {
+      final r = _allRooms.where((room) => room.id == inv.roomId).firstOrNull ??
+          _rooms.where((room) => room.id == inv.roomId).firstOrNull;
+      if (r != null) {
+        inv.roomNumber = r.roomNumber;
+        final b = _buildings.where((bld) => bld.id == r.buildingId).firstOrNull;
+        if (b != null) {
+          inv.buildingName = b.name;
+        }
+      }
+    }
+
+    _invoices.sort((a, b) => (b.year * 12 + b.month).compareTo(a.year * 12 + a.month));
     notifyListeners();
   }
 
@@ -288,6 +315,20 @@ class AppDataProvider with ChangeNotifier {
 
   Future<void> fetchTickets({String? status}) async {
     _tickets = await _ticketService.getTickets(status: status);
+
+    // Cross-reference roomNumber and buildingName for tickets
+    for (final t in _tickets) {
+      final r = _allRooms.where((room) => room.id == t.roomId).firstOrNull ??
+          _rooms.where((room) => room.id == t.roomId).firstOrNull;
+      if (r != null) {
+        t.roomNumber = r.roomNumber;
+        final b = _buildings.where((bld) => bld.id == r.buildingId).firstOrNull;
+        if (b != null) {
+          t.buildingName = b.name;
+        }
+      }
+    }
+
     notifyListeners();
   }
 
@@ -508,23 +549,13 @@ class AppDataProvider with ChangeNotifier {
         if (_activeEmergencyModal?.id != newestAlert.id) {
           _activeEmergencyModal = newestAlert;
           HapticFeedback.heavyImpact();
-
-          // Also reload history so drawer badge and emergency history list update
-          final apiAlerts = await _emergencyService.getEmergencyHistory();
-          if (apiAlerts.isNotEmpty) {
-            _emergencyAlerts = apiAlerts;
-          }
-          notifyListeners();
+          await loadEmergencyAlerts();
         }
       } else {
         // No active emergencies on server (e.g. was resolved or acknowledged)
         if (_activeEmergencyModal != null) {
           _activeEmergencyModal = null;
-          final apiAlerts = await _emergencyService.getEmergencyHistory();
-          if (apiAlerts.isNotEmpty) {
-            _emergencyAlerts = apiAlerts;
-          }
-          notifyListeners();
+          await loadEmergencyAlerts();
         }
       }
     } catch (_) {
@@ -572,46 +603,72 @@ class AppDataProvider with ChangeNotifier {
   Future<void> loadEmergencyAlerts() async {
     try {
       // 1. Fetch from live API
-      final apiAlerts = await _emergencyService.getEmergencyHistory();
-      if (apiAlerts.isNotEmpty) {
-        _emergencyAlerts = apiAlerts;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-          'emergency_sos_alerts',
-          jsonEncode(_emergencyAlerts.map((e) => e.toJson()).toList()),
-        );
-      } else {
-        // Fallback to local storage if API is empty
-        final prefs = await SharedPreferences.getInstance();
-        final alertsJson = prefs.getString('emergency_sos_alerts');
-        if (alertsJson != null) {
+      List<EmergencyAlertModel> apiAlerts = [];
+      try {
+        apiAlerts = await _emergencyService.getEmergencyHistory();
+      } catch (_) {}
+
+      // 2. Fetch from local cache
+      List<EmergencyAlertModel> localAlerts = [];
+      final prefs = await SharedPreferences.getInstance();
+      final alertsJson = prefs.getString('emergency_sos_alerts');
+      if (alertsJson != null) {
+        try {
           final List list = jsonDecode(alertsJson);
-          _emergencyAlerts = list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
-        } else {
-          _emergencyAlerts = List.from(defaultDemoAlerts);
-        }
+          localAlerts = list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
+        } catch (_) {}
       }
 
-      // 2. Fetch active emergencies for Owner popup alert
-      final activeList = await _emergencyService.getActiveEmergencies();
-      if (activeList.isNotEmpty) {
-        _activeEmergencyModal = activeList.first;
-      } else {
-        _activeEmergencyModal = null;
+      // 3. 3-Way Merge exactly matching Web logic: DEFAULT_DEMO_ALERTS + serverAlerts + localAlerts
+      final map = <String, EmergencyAlertModel>{};
+      for (final a in defaultDemoAlerts) {
+        map[a.id] = a;
       }
+      for (final a in localAlerts) {
+        map[a.id] = a;
+      }
+      for (final a in apiAlerts) {
+        map[a.id] = a;
+      }
+
+      final merged = map.values.toList()
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      _emergencyAlerts = merged;
+
+      // Save merged list back to local storage
+      await prefs.setString(
+        'emergency_sos_alerts',
+        jsonEncode(_emergencyAlerts.map((e) => e.toJson()).toList()),
+      );
+
+      // 4. Fetch active emergencies for Owner popup alert
+      try {
+        final activeList = await _emergencyService.getActiveEmergencies();
+        if (activeList.isNotEmpty) {
+          _activeEmergencyModal = activeList.first;
+        } else {
+          _activeEmergencyModal = null;
+        }
+      } catch (_) {}
 
       notifyListeners();
     } catch (_) {
-      // Offline fallback
       try {
+        final map = <String, EmergencyAlertModel>{};
+        for (final a in defaultDemoAlerts) {
+          map[a.id] = a;
+        }
         final prefs = await SharedPreferences.getInstance();
         final alertsJson = prefs.getString('emergency_sos_alerts');
         if (alertsJson != null) {
           final List list = jsonDecode(alertsJson);
-          _emergencyAlerts = list.map((item) => EmergencyAlertModel.fromJson(item)).toList();
-        } else {
-          _emergencyAlerts = List.from(defaultDemoAlerts);
+          for (final item in list) {
+            final a = EmergencyAlertModel.fromJson(item);
+            map[a.id] = a;
+          }
         }
+        _emergencyAlerts = map.values.toList()
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         notifyListeners();
       } catch (_) {}
     }
@@ -686,6 +743,7 @@ class AppDataProvider with ChangeNotifier {
     for (var alert in _emergencyAlerts) {
       if (alert.id == alertId) {
         alert.status = 'ACKNOWLEDGED';
+        alert.acknowledgedBy ??= 'Nguyễn Văn Chủ Trọ';
       }
     }
     if (_activeEmergencyModal?.id == alertId) {

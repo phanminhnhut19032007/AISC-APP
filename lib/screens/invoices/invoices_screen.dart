@@ -457,91 +457,149 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                             dataRowMinHeight: 56,
                             dataRowMaxHeight: 62,
                             headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
-                            columns: const [
-                              DataColumn(
-                                label: Text(
-                                  'KỲ HÓA ĐƠN',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'TIỀN PHÒNG',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'TIỀN ĐIỆN',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'TIỀN NƯỚC',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'TỔNG TIỀN',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'TRẠNG THÁI',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'THANH TOÁN & LỊCH SỬ',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF64748B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            columns: isOwner
+                                ? const [
+                                    DataColumn(label: Text('TÒA NHÀ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('PHÒNG', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('THÁNG/NĂM', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TIỀN PHÒNG', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TIỀN ĐIỆN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TIỀN NƯỚC', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TỔNG TIỀN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TRẠNG THÁI', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('MÃ QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('THAO TÁC', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                  ]
+                                : const [
+                                    DataColumn(label: Text('KỲ HÓA ĐƠN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TIỀN PHÒNG', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TIỀN ĐIỆN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TIỀN NƯỚC', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TỔNG TIỀN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('TRẠNG THÁI', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                    DataColumn(label: Text('THANH TOÁN & LỊCH SỬ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)))),
+                                  ],
                             rows: filteredInvoices.map((inv) {
                               final isPaid = inv.isPaid;
                               final dateDisplay = inv.paidAt != null
                                   ? Formatters.formatDate(inv.paidAt!)
                                   : (inv.dueDate != null ? Formatters.formatDate(inv.dueDate!) : '27/8/2026');
 
+                              if (isOwner) {
+                                return DataRow(
+                                  cells: [
+                                    DataCell(
+                                      Text(
+                                        inv.buildingName ?? data.selectedBuilding?.name ?? '—',
+                                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        '#${inv.roomNumber ?? "—"}',
+                                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF4F46E5)),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        'Tháng ${inv.month}/${inv.year}',
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(Formatters.formatCurrency(inv.baseRent), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                    ),
+                                    DataCell(
+                                      Text(Formatters.formatCurrency(inv.electricityAmount), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                    ),
+                                    DataCell(
+                                      Text(Formatters.formatCurrency(inv.waterAmount), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                    ),
+                                    DataCell(
+                                      Text(Formatters.formatCurrency(inv.totalAmount), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                                    ),
+                                    DataCell(StatusBadge.invoice(inv.status)),
+                                    DataCell(
+                                      inv.vietqrCode != null && inv.vietqrCode!.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(Icons.qr_code_2_rounded, color: Color(0xFF2563EB), size: 20),
+                                              onPressed: () => _showVietQRDialog(context, inv),
+                                              tooltip: 'Xem mã QR thanh toán',
+                                            )
+                                          : const Text('—', style: TextStyle(color: AppColors.textMuted)),
+                                    ),
+                                    DataCell(
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (data.showDeletedInvoices) ...[
+                                            ElevatedButton.icon(
+                                              onPressed: () async {
+                                                await data.restoreInvoice(inv.id);
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Đã khôi phục hóa đơn thành công!')),
+                                                  );
+                                                }
+                                              },
+                                              icon: const Icon(Icons.restore_from_trash_rounded, size: 14),
+                                              label: const Text('Phục hồi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF2563EB),
+                                                foregroundColor: Colors.white,
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                elevation: 0,
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            if (!isPaid && inv.status != 'CANCELLED') ...[
+                                              ElevatedButton.icon(
+                                                onPressed: () async {
+                                                  final confirm = await showDialog<bool>(
+                                                    context: context,
+                                                    builder: (c) => AlertDialog(
+                                                      title: const Text('Xác nhận thu tiền mặt'),
+                                                      content: Text('Xác nhận đã nhận đủ ${Formatters.formatCurrency(inv.totalAmount)} tiền mặt cho hóa đơn này?'),
+                                                      actions: [
+                                                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Hủy')),
+                                                        ElevatedButton(onPressed: () => Navigator.pop(c, true), child: const Text('Xác nhận')),
+                                                      ],
+                                                    ),
+                                                  );
+                                                  if (confirm == true) {
+                                                    await data.markInvoicePaid(inv.id);
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(content: Text('Đã cập nhật trạng thái thu tiền mặt!')),
+                                                      );
+                                                    }
+                                                  }
+                                                },
+                                                icon: const Icon(Icons.check_circle_outline_rounded, size: 14),
+                                                label: const Text('Thu tiền mặt', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(0xFF059669),
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                                  elevation: 0,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                            ],
+                                            IconButton(
+                                              onPressed: () => _confirmDeleteInvoice(context, inv, data),
+                                              icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.danger),
+                                              tooltip: 'Xóa',
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              // Tenant View
                               return DataRow(
                                 cells: [
                                   DataCell(
@@ -589,27 +647,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (data.showDeletedInvoices) ...[
-                                          // Nút Khôi phục trong thùng rác
-                                          ElevatedButton.icon(
-                                            onPressed: () async {
-                                              await data.restoreInvoice(inv.id);
-                                              if (context.mounted) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Đã khôi phục hóa đơn thành công!')),
-                                                );
-                                              }
-                                            },
-                                            icon: const Icon(Icons.restore_from_trash_rounded, size: 14),
-                                            label: const Text('Khôi phục', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF059669),
-                                              foregroundColor: Colors.white,
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              elevation: 0,
-                                            ),
-                                          ),
-                                        ] else if (isPaid) ...[
+                                        if (isPaid) ...[
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                             decoration: BoxDecoration(
@@ -633,131 +671,25 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                               ],
                                             ),
                                           ),
-                                          const SizedBox(width: 6),
-                                          // QR Button
-                                          AnimatedPressable(
-                                            onTap: () => _showVietQRDialog(context, inv),
-                                            scaleDown: 0.92,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.bgLight,
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: AppColors.borderLight),
-                                              ),
-                                              child: const Icon(
-                                                Icons.qr_code_2_rounded,
-                                                size: 16,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                            ),
-                                          ),
-                                        ] else ...[
-                                          // Chưa thanh toán
-                                          if (isOwner) ...[
-                                            // Nút Thu tiền mặt (Chủ trọ)
-                                            AnimatedPressable(
-                                              onTap: () async {
-                                                final confirm = await showDialog<bool>(
-                                                  context: context,
-                                                  builder: (c) => AlertDialog(
-                                                    title: const Text('Xác nhận thu tiền mặt'),
-                                                    content: Text('Xác nhận đã nhận đủ ${Formatters.formatCurrency(inv.totalAmount)} tiền mặt cho hóa đơn này?'),
-                                                    actions: [
-                                                      TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Hủy')),
-                                                      ElevatedButton(onPressed: () => Navigator.pop(c, true), child: const Text('Xác nhận')),
-                                                    ],
-                                                  ),
-                                                );
-                                                if (confirm == true) {
-                                                  await data.markInvoicePaid(inv.id);
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      const SnackBar(content: Text('Đã cập nhật trạng thái thu tiền mặt!')),
-                                                    );
-                                                  }
-                                                }
-                                              },
-                                              scaleDown: 0.94,
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFECFDF5),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  border: Border.all(color: const Color(0xFFA7F3D0)),
-                                                ),
-                                                child: const Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Icon(Icons.payments_outlined, size: 13, color: Color(0xFF059669)),
-                                                    SizedBox(width: 4),
-                                                    Text(
-                                                      'Thu tiền mặt',
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Color(0xFF059669),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
+                                          if (inv.vietqrCode != null && inv.vietqrCode!.isNotEmpty) ...[
                                             const SizedBox(width: 6),
-                                            // Nút Xóa (cho vào thùng rác)
                                             IconButton(
-                                              onPressed: () => _confirmDeleteInvoice(context, inv, data),
-                                              icon: const Icon(Icons.delete_outline_rounded, size: 17, color: AppColors.danger),
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              tooltip: 'Xóa tạm thời',
+                                              onPressed: () => _showVietQRDialog(context, inv),
+                                              icon: const Icon(Icons.qr_code_2_rounded, size: 18, color: AppColors.textSecondary),
+                                              tooltip: 'Xem biên lai VietQR',
                                             ),
-                                            const SizedBox(width: 6),
-                                          ] else ...[
-                                            AnimatedPressable(
-                                              onTap: () => _showVietQRDialog(context, inv),
-                                              scaleDown: 0.94,
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFF2563EB),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                child: const Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Icon(Icons.qr_code_rounded, size: 13, color: Colors.white),
-                                                    SizedBox(width: 4),
-                                                    Text(
-                                                      'Thanh toán',
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
                                           ],
-                                          // QR Button
-                                          AnimatedPressable(
-                                            onTap: () => _showVietQRDialog(context, inv),
-                                            scaleDown: 0.92,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.bgLight,
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: AppColors.borderLight),
-                                              ),
-                                              child: const Icon(
-                                                Icons.qr_code_2_rounded,
-                                                size: 16,
-                                                color: AppColors.textSecondary,
-                                              ),
+                                        ] else ...[
+                                          ElevatedButton.icon(
+                                            onPressed: () => _showVietQRDialog(context, inv),
+                                            icon: const Icon(Icons.qr_code_rounded, size: 14),
+                                            label: const Text('Quét VietQR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF2563EB),
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                              elevation: 0,
                                             ),
                                           ),
                                         ],
