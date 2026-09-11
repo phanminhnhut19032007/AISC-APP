@@ -148,8 +148,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Center(
-                      child: Icon(
-                        Icons.emergency_rounded, // Star of life emergency icon
+                      child: SirenIcon(
                         color: Colors.white,
                         size: 26,
                       ),
@@ -181,17 +180,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              // Emergency Hotlines Pills with dark red rounded pill background
-              Row(
-                children: [
-                  _buildHotlinePill('🚒 114 (Cháy)'),
-                  const SizedBox(width: 8),
-                  _buildHotlinePill('🚑 115 (Cấp cứu)'),
-                  const SizedBox(width: 8),
-                  _buildHotlinePill('👮 113 (Công an)'),
                 ],
               ),
             ],
@@ -465,24 +453,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> with TickerProviderSt
         // Incident History
         _buildAlertHistoryList(data, isOwner: false),
       ],
-    );
-  }
-
-  Widget _buildHotlinePill(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF991B1B).withValues(alpha: 0.85), // Dark crimson maroon pill background
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
     );
   }
 
