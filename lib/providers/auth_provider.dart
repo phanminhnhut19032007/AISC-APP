@@ -9,10 +9,14 @@ class AuthProvider with ChangeNotifier {
 
   UserModel? _currentUser;
   bool _isLoading = false;
+  bool _isLoginSuccess = false;
+  String? _successUserName;
   String? _tenantRoomCode = '101';
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isLoginSuccess => _isLoginSuccess;
+  String? get successUserName => _successUserName;
   bool get isAuthenticated => _currentUser != null;
   String? get tenantRoomCode => _tenantRoomCode;
 
@@ -43,20 +47,30 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> login(String phone, String password, {String? roomCode}) async {
     _isLoading = true;
+    _isLoginSuccess = false;
     notifyListeners();
 
     try {
-      _currentUser = await _authService.login(phone, password);
+      final user = await _authService.login(phone, password);
       if (roomCode != null && roomCode.isNotEmpty) {
         _tenantRoomCode = roomCode;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(ApiConstants.demoTenantRoomKey, roomCode);
       }
+      _isLoginSuccess = true;
+      _successUserName = user.fullName;
       _isLoading = false;
+      notifyListeners();
+
+      // Smooth celebration pause before transitioning to main screen
+      await Future.delayed(const Duration(milliseconds: 700));
+      _currentUser = user;
+      _isLoginSuccess = false;
       notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
+      _isLoginSuccess = false;
       notifyListeners();
       rethrow;
     }

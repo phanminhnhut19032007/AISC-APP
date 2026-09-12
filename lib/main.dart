@@ -70,11 +70,44 @@ class AuthGate extends StatelessWidget {
     }
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: child,
-      ),
+      duration: const Duration(milliseconds: 650),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        final isMain = child.key == const ValueKey('main_screen');
+
+        final scaleAnimation = Tween<double>(
+          begin: isMain ? 0.94 : 1.0,
+          end: isMain ? 1.0 : 1.04,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        ));
+
+        final slideAnimation = Tween<Offset>(
+          begin: isMain ? const Offset(0.0, 0.04) : Offset.zero,
+          end: isMain ? Offset.zero : const Offset(0.0, -0.03),
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        ));
+
+        final fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: SlideTransition(
+            position: slideAnimation,
+            child: ScaleTransition(
+              scale: scaleAnimation,
+              child: child,
+            ),
+          ),
+        );
+      },
       child: auth.isAuthenticated
           ? const MainNavigationScreen(key: ValueKey('main_screen'))
           : const LoginScreen(key: ValueKey('login_screen')),

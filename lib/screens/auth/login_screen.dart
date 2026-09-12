@@ -555,48 +555,90 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
         const SizedBox(height: 16),
 
-        // Submit Button
+        // Submit Button with Morphing Animation & Success State
         AnimatedPressable(
-          onTap: auth.isLoading ? null : _handleLogin,
+          onTap: (auth.isLoading || auth.isLoginSuccess) ? null : _handleLogin,
           scaleDown: 0.96,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
             width: double.infinity,
-            height: 48,
+            height: 50,
             decoration: BoxDecoration(
-              gradient: isOwner
-                  ? const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF0284C7)])
-                  : const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
+              gradient: auth.isLoginSuccess
+                  ? const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)])
+                  : isOwner
+                      ? const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF0284C7)])
+                      : const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: (isOwner ? const Color(0xFF0284C7) : const Color(0xFFF59E0B)).withValues(alpha: 0.35),
-                  blurRadius: 16,
+                  color: auth.isLoginSuccess
+                      ? const Color(0xFF10B981).withValues(alpha: 0.45)
+                      : (isOwner ? const Color(0xFF0284C7) : const Color(0xFFF59E0B)).withValues(alpha: 0.35),
+                  blurRadius: auth.isLoginSuccess ? 22 : 16,
+                  spreadRadius: auth.isLoginSuccess ? 2 : 0,
                   offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Center(
-              child: auth.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Đăng nhập vào hệ thống',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: isOwner ? Colors.white : const Color(0xFF030712),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: anim,
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
+                child: auth.isLoginSuccess
+                    ? Row(
+                        key: const ValueKey('success_state'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            child: const Icon(Icons.check_rounded, color: Color(0xFF059669), size: 16),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 16, color: isOwner ? Colors.white : const Color(0xFF030712)),
-                      ],
-                    ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Đăng nhập thành công!',
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      )
+                    : auth.isLoading
+                        ? const SizedBox(
+                            key: ValueKey('loading_state'),
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                          )
+                        : Row(
+                            key: const ValueKey('normal_state'),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Đăng nhập vào hệ thống',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: isOwner ? Colors.white : const Color(0xFF030712),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 16,
+                                color: isOwner ? Colors.white : const Color(0xFF030712),
+                              ),
+                            ],
+                          ),
+              ),
             ),
           ),
         ),
