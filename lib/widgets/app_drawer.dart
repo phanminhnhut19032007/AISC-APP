@@ -362,6 +362,7 @@ class AppDrawer extends StatelessWidget {
             ),
             onPressed: () {
               Navigator.pop(ctx);
+              context.read<AppDataProvider>().reset();
               auth.logout();
             },
             child: const Text('Đăng xuất'),

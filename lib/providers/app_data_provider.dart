@@ -127,6 +127,19 @@ class AppDataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void reset() {
+    _buildings = [];
+    _selectedBuilding = null;
+    _rooms = [];
+    _allRooms = [];
+    _invoices = [];
+    _tickets = [];
+    _orders = [];
+    _notifications = [];
+    _activeEmergencyModal = null;
+    notifyListeners();
+  }
+
   void setShowDeletedBuildings(bool value) {
     _showDeletedBuildings = value;
     fetchBuildings(includeDeleted: value);

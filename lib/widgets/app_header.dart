@@ -397,6 +397,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     InkWell(
                       onTap: () {
                         Navigator.pop(ctx);
+                        context.read<AppDataProvider>().reset();
                         auth.logout();
                       },
                       child: const Padding(
