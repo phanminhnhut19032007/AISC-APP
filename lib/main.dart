@@ -65,8 +65,19 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
+    final Widget childScreen;
     if (auth.isLoading && auth.currentUser == null) {
-      return const SplashScreen();
+      childScreen = const SplashScreen(key: ValueKey('initial_splash_screen'));
+    } else if (auth.isLoadingAccount) {
+      childScreen = SplashScreen(
+        key: const ValueKey('account_loading_splash_screen'),
+        userName: auth.loadingUserName,
+        onFinished: () => auth.finishAccountLoading(),
+      );
+    } else if (auth.isAuthenticated) {
+      childScreen = const MainNavigationScreen(key: ValueKey('main_screen'));
+    } else {
+      childScreen = const LoginScreen(key: ValueKey('login_screen'));
     }
 
     return AnimatedSwitcher(
@@ -108,9 +119,7 @@ class AuthGate extends StatelessWidget {
           ),
         );
       },
-      child: auth.isAuthenticated
-          ? const MainNavigationScreen(key: ValueKey('main_screen'))
-          : const LoginScreen(key: ValueKey('login_screen')),
+      child: childScreen,
     );
   }
 }

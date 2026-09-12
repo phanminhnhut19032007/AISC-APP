@@ -40,15 +40,17 @@ class _TicketsScreenState extends State<TicketsScreen> {
         currentIndex: isOwner ? 3 : 2,
         onTabSelected: (idx) => widget.onNavigateTab?.call(idx),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateTicketDialog(context, data, auth),
-        backgroundColor: AppColors.warning,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text(
-          'Báo sự cố',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
+      floatingActionButton: isOwner
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _showCreateTicketDialog(context, data, auth),
+              backgroundColor: AppColors.warning,
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text(
+                'Báo sự cố',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
       body: RefreshIndicator(
         onRefresh: () => data.fetchTickets(),
         child: SingleChildScrollView(

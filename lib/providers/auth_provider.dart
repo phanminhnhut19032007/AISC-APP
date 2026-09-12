@@ -12,6 +12,8 @@ class AuthProvider with ChangeNotifier {
   bool _isLoginSuccess = false;
   String? _successUserName;
   String? _tenantRoomCode = '101';
+  bool _isLoadingAccount = false;
+  String? _loadingUserName;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -19,6 +21,13 @@ class AuthProvider with ChangeNotifier {
   String? get successUserName => _successUserName;
   bool get isAuthenticated => _currentUser != null;
   String? get tenantRoomCode => _tenantRoomCode;
+  bool get isLoadingAccount => _isLoadingAccount;
+  String? get loadingUserName => _loadingUserName;
+
+  void finishAccountLoading() {
+    _isLoadingAccount = false;
+    notifyListeners();
+  }
 
   AuthProvider() {
     _init();
@@ -62,9 +71,11 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      // Smooth celebration pause before transitioning to main screen
-      await Future.delayed(const Duration(milliseconds: 700));
+      // Short celebration then trigger animated account loading screen with % progress
+      await Future.delayed(const Duration(milliseconds: 350));
       _currentUser = user;
+      _isLoadingAccount = true;
+      _loadingUserName = user.fullName;
       _isLoginSuccess = false;
       notifyListeners();
       return true;
@@ -124,6 +135,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     await _authService.logout();
     _currentUser = null;
+    _isLoadingAccount = false;
     notifyListeners();
   }
 }

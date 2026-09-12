@@ -2,148 +2,144 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final String? userName;
+  final String? statusMessage;
+  final VoidCallback? onFinished;
+
+  const SplashScreen({
+    super.key,
+    this.userName,
+    this.statusMessage,
+    this.onFinished,
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+  late AnimationController _animController;
   late AnimationController _pulseController;
   late AnimationController _floatController;
-  late AnimationController _shimmerController;
+  late AnimationController _progressController;
+  late Animation<double> _progressAnimation;
 
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
   late Animation<double> _floatAnimation;
 
-  final math.Random _random = math.Random();
-  final List<_SplashStar> _stars = [];
-
   @override
   void initState() {
     super.initState();
 
-    // Pulse & glow animation for logo halo
+    // 1. Background Aurora Waves Controller
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
+
+    // 2. Logo Pulse & Glow
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
     )..repeat(reverse: true);
 
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+    _scaleAnimation = Tween<double>(begin: 0.96, end: 1.04).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
 
-    _glowAnimation = Tween<double>(begin: 0.35, end: 0.85).animate(
+    _glowAnimation = Tween<double>(begin: 0.25, end: 0.65).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
 
-    // Floating vertical motion
+    // 3. Floating Motion
     _floatController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 2800),
     )..repeat(reverse: true);
 
-    _floatAnimation = Tween<double>(begin: -6.0, end: 6.0).animate(
+    _floatAnimation = Tween<double>(begin: -5.0, end: 5.0).animate(
       CurvedAnimation(parent: _floatController, curve: Curves.easeInOutQuad),
     );
 
-    // Shimmer effect for progress bar and text
-    _shimmerController = AnimationController(
+    // 4. Progress Controller (0% to 100%)
+    _progressController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..repeat();
+    );
 
-    // Generate floating star particles
-    final starColors = [
-      const Color(0xFFFBD38D),
-      const Color(0xFF38BDF8),
-      const Color(0xFF60A5FA),
-      const Color(0xFFC084FC),
-      const Color(0xFFFFFFFF),
-    ];
+    _progressAnimation = CurvedAnimation(
+      parent: _progressController,
+      curve: Curves.easeInOutCubic,
+    );
 
-    for (int i = 0; i < 45; i++) {
-      _stars.add(_SplashStar(
-        x: _random.nextDouble(),
-        y: _random.nextDouble(),
-        size: _random.nextDouble() * 2.5 + 1.0,
-        speedY: _random.nextDouble() * 0.03 + 0.01,
-        opacity: _random.nextDouble() * 0.6 + 0.2,
-        color: starColors[_random.nextInt(starColors.length)],
-        offset: _random.nextDouble() * 2 * math.pi,
-      ));
-    }
+    _progressController.forward().then((_) {
+      if (mounted) {
+        widget.onFinished?.call();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _animController.dispose();
     _pulseController.dispose();
     _floatController.dispose();
-    _shimmerController.dispose();
+    _progressController.dispose();
     super.dispose();
+  }
+
+  String _getStatusText(double percent) {
+    if (widget.statusMessage != null && widget.statusMessage!.isNotEmpty) {
+      return widget.statusMessage!;
+    }
+
+    if (widget.userName != null) {
+      if (percent < 0.28) {
+        return 'Đang xác thực thông tin tài khoản...';
+      } else if (percent < 0.65) {
+        return 'Đang đồng bộ dữ liệu phòng & dịch vụ...';
+      } else if (percent < 0.92) {
+        return 'Đang chuẩn bị không gian làm việc...';
+      } else {
+        return 'Hoàn tất! Đang chuyển hướng...';
+      }
+    } else {
+      if (percent < 0.35) {
+        return 'Đang kiểm tra phiên làm việc...';
+      } else if (percent < 0.8) {
+        return 'Đang tải tài nguyên hệ thống...';
+      } else {
+        return 'Sẵn sàng!';
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF030712), // Deep cosmic black/slate
+      backgroundColor: const Color(0xFFF8FAFC), // Pure clean white / light background
       body: Stack(
         children: [
-          // 1. Ambient Background Orbs
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.2,
-            left: -60,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF2563EB).withValues(alpha: 0.25),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.2,
-            right: -60,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFFF59E0B).withValues(alpha: 0.2),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
+          // 1. Dynamic Animated Aurora Mesh & Floating Waves Canvas (Same as Login Screen)
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _animController,
+              builder: (context, _) {
+                return CustomPaint(
+                  painter: _AuroraWavesPainter(
+                    animationValue: _animController.value,
+                  ),
+                  size: Size.infinite,
+                );
+              },
             ),
           ),
 
-          // 2. Animated Starfield
-          AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, _) {
-              return CustomPaint(
-                painter: _SplashStarfieldPainter(
-                  stars: _stars,
-                  animationValue: _pulseController.value,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
-
-          // 3. Center Hero Logo & Animation
+          // 2. Center Hero Logo & Info
           Center(
             child: AnimatedBuilder(
-              animation: Listenable.merge([_pulseController, _floatController, _shimmerController]),
+              animation: Listenable.merge([_pulseController, _floatController]),
               builder: (context, _) {
                 return Transform.translate(
                   offset: Offset(0, _floatAnimation.value),
@@ -156,51 +152,50 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            // Ambient Breathing Halo
+                            // Soft pastel ambient breathing halo
                             Container(
-                              width: 140,
-                              height: 100,
+                              width: 130,
+                              height: 92,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(28),
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFFF59E0B),
-                                    Color(0xFF38BDF8),
-                                    Color(0xFF2563EB),
+                                    Color(0xFFFDE68A),
+                                    Color(0xFFBAE6FD),
+                                    Color(0xFF93C5FD),
                                   ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: const Color(0xFF38BDF8).withValues(alpha: _glowAnimation.value),
-                                    blurRadius: 36,
-                                    spreadRadius: 6,
+                                    blurRadius: 32,
+                                    spreadRadius: 3,
+                                    offset: const Offset(0, 8),
                                   ),
                                   BoxShadow(
-                                    color: const Color(0xFFF59E0B).withValues(alpha: _glowAnimation.value * 0.7),
-                                    blurRadius: 28,
-                                    spreadRadius: 2,
+                                    color: const Color(0xFFFBBF24).withValues(alpha: _glowAnimation.value * 0.6),
+                                    blurRadius: 24,
+                                    spreadRadius: 1,
                                   ),
                                 ],
                               ),
                             ),
 
-                            // Logo Card with Border
+                            // White Logo Card with clean border
                             Container(
-                              width: 126,
-                              height: 88,
-                              padding: const EdgeInsets.all(10),
+                              width: 122,
+                              height: 84,
+                              padding: const EdgeInsets.all(9),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(26),
+                                borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  width: 2,
+                                  color: const Color(0xFFE2E8F0),
+                                  width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
+                                    color: const Color(0xFF0F172A).withValues(alpha: 0.08),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -211,17 +206,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                 child: Image.asset(
                                   'assets/logo.jpg',
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Center(
+                                  errorBuilder: (_, _, _) => const Center(
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.home_rounded, color: Color(0xFFF59E0B), size: 32),
+                                        Icon(Icons.home_rounded, color: Color(0xFFF59E0B), size: 30),
                                         SizedBox(width: 4),
                                         Text(
-                                          'EASY',
+                                          'REASY',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w900,
-                                            fontSize: 22,
+                                            fontSize: 20,
                                             color: Color(0xFF0284C7),
                                           ),
                                         ),
@@ -235,82 +230,55 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ),
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
-                      // Brand Name with Gradient Shimmer
+                      // Brand Name
                       ShaderMask(
-                        shaderCallback: (bounds) {
-                          return LinearGradient(
-                            colors: const [
-                              Color(0xFFFDE68A),
-                              Color(0xFF7DD3FC),
-                              Color(0xFF60A5FA),
-                              Color(0xFFFDE68A),
-                            ],
-                            stops: const [0.0, 0.4, 0.7, 1.0],
-                            transform: GradientRotation(_shimmerController.value * 2 * math.pi),
-                          ).createShader(bounds);
-                        },
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFFD97706), Color(0xFF0284C7), Color(0xFF2563EB)],
+                        ).createShader(bounds),
                         child: const Text(
-                          'RENTEASY',
+                          'REASY',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
-                            letterSpacing: 4.0,
+                            letterSpacing: 2.0,
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
-                      // Slogan
-                      Text(
-                        'Quản lý trọ & căn hộ thông minh',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF94A3B8).withValues(alpha: 0.9),
-                          letterSpacing: 0.5,
+                      // User Greeting or System Slogan
+                      if (widget.userName != null) ...[
+                        Text(
+                          'Xin chào, ${widget.userName}!',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      // Modern Glowing Pulse Dots Loader
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(3, (index) {
-                          final delay = index * 0.25;
-                          final value = (_shimmerController.value + delay) % 1.0;
-                          final scale = 0.6 + 0.6 * math.sin(value * math.pi);
-                          final opacity = 0.3 + 0.7 * math.sin(value * math.pi);
-
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 5),
-                            width: 10 * scale,
-                            height: 10 * scale,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: index == 0
-                                  ? const Color(0xFF38BDF8).withValues(alpha: opacity)
-                                  : (index == 1
-                                      ? const Color(0xFFF59E0B).withValues(alpha: opacity)
-                                      : const Color(0xFF60A5FA).withValues(alpha: opacity)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (index == 0
-                                          ? const Color(0xFF38BDF8)
-                                          : (index == 1 ? const Color(0xFFF59E0B) : const Color(0xFF60A5FA)))
-                                      .withValues(alpha: opacity * 0.8),
-                                  blurRadius: 10,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Đang tải vào tài khoản của bạn...',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ] else ...[
+                        const Text(
+                          'Hệ thống quản lý phòng trọ thông minh',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );
@@ -318,15 +286,103 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
           ),
 
-          // 4. Footer info
-          const Positioned(
-            bottom: 24,
-            left: 0,
-            right: 0,
+          // 3. Bottom Progress Bar with Percentage Indicator
+          Positioned(
+            bottom: 48,
+            left: 32,
+            right: 32,
             child: Center(
-              child: Text(
-                'v1.0.0 • Nền tảng số hóa quản lý chuỗi trọ',
-                style: TextStyle(fontSize: 10, color: Color(0xFF475569), fontWeight: FontWeight.w500),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 340),
+                child: AnimatedBuilder(
+                  animation: _progressAnimation,
+                  builder: (context, _) {
+                    final progress = _progressAnimation.value;
+                    final percent = (progress * 100).toInt().clamp(0, 100);
+                    final status = _getStatusText(progress);
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Status & Percentage Text Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                status,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFBFDBFE), width: 0.8),
+                              ),
+                              child: Text(
+                                '$percent%',
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF2563EB),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // Horizontal Progress Track Bar
+                        Container(
+                          width: double.infinity,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Stack(
+                            children: [
+                              FractionallySizedBox(
+                                alignment: Alignment.centerLeft,
+                                widthFactor: progress.clamp(0.01, 1.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF2563EB),
+                                        Color(0xFF0284C7),
+                                        Color(0xFF38BDF8),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF2563EB).withValues(alpha: 0.4),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -336,54 +392,162 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 }
 
-class _SplashStar {
-  double x;
-  double y;
-  final double size;
-  final double speedY;
-  double opacity;
-  final Color color;
-  final double offset;
-
-  _SplashStar({
-    required this.x,
-    required this.y,
-    required this.size,
-    required this.speedY,
-    required this.opacity,
-    required this.color,
-    required this.offset,
-  });
-}
-
-class _SplashStarfieldPainter extends CustomPainter {
-  final List<_SplashStar> stars;
+/// Custom painter that paints vibrant yet elegant fluid aurora mesh orbs & graceful waves
+/// on a pristine white backdrop matching the login screen.
+class _AuroraWavesPainter extends CustomPainter {
   final double animationValue;
 
-  _SplashStarfieldPainter({required this.stars, required this.animationValue});
+  _AuroraWavesPainter({required this.animationValue});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint();
+    final t = animationValue * 2 * math.pi;
 
-    for (final star in stars) {
-      final currentY = (star.y - animationValue * star.speedY * 3) % 1.0;
-      final currentX = (star.x + math.sin(animationValue * 2 * math.pi + star.offset) * 0.01) % 1.0;
+    // 1. Base gradient wash
+    final bgRect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final bgPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFFFFFFF),
+          Color(0xFFF8FAFC),
+          Color(0xFFF1F5F9),
+        ],
+      ).createShader(bgRect);
+    canvas.drawRect(bgRect, bgPaint);
 
-      final px = currentX * size.width;
-      final py = currentY * size.height;
+    // 2. Animated Floating Radiant Pastel Orbs
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.15 + math.sin(t) * 45,
+        size.height * 0.18 + math.cos(t * 0.8) * 35,
+      ),
+      radius: size.width * 0.45,
+      color: const Color(0xFF38BDF8), // Sky Cyan
+      opacity: 0.16 + math.sin(t) * 0.03,
+    );
 
-      final pulse = (math.sin(animationValue * 4 * math.pi + star.offset) + 1) / 2;
-      final currentOpacity = (star.opacity * (0.5 + 0.5 * pulse)).clamp(0.1, 1.0);
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.88 + math.cos(t * 0.9) * 40,
+        size.height * 0.28 + math.sin(t * 1.1) * 30,
+      ),
+      radius: size.width * 0.40,
+      color: const Color(0xFF818CF8), // Soft Royal Indigo
+      opacity: 0.14 + math.cos(t * 0.03),
+    );
 
-      paint.color = star.color.withValues(alpha: currentOpacity);
-      canvas.drawCircle(Offset(px, py), star.size, paint);
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.82 + math.sin(t * 1.2) * 50,
+        size.height * 0.80 + math.cos(t * 0.7) * 40,
+      ),
+      radius: size.width * 0.50,
+      color: const Color(0xFFFBBF24), // Sunshine Amber
+      opacity: 0.15 + math.sin(t * 0.8) * 0.03,
+    );
 
-      paint.color = star.color.withValues(alpha: currentOpacity * 0.3);
-      canvas.drawCircle(Offset(px, py), star.size * 2.0, paint);
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.10 + math.cos(t * 0.7) * 35,
+        size.height * 0.82 + math.sin(t * 0.9) * 35,
+      ),
+      radius: size.width * 0.42,
+      color: const Color(0xFF34D399), // Mint Green
+      opacity: 0.12 + math.cos(t * 1.1) * 0.03,
+    );
+
+    // 3. Flowing Sinusoidal Silk Waves
+    _drawFlowingWave(
+      canvas: canvas,
+      size: size,
+      waveHeight: size.height * 0.38,
+      amplitude: 28,
+      frequency: 1.2,
+      phase: t,
+      strokeWidth: 2.0,
+      gradientColors: [
+        const Color(0xFF38BDF8).withValues(alpha: 0.22),
+        const Color(0xFF818CF8).withValues(alpha: 0.18),
+        const Color(0xFFFBBF24).withValues(alpha: 0.15),
+      ],
+    );
+
+    _drawFlowingWave(
+      canvas: canvas,
+      size: size,
+      waveHeight: size.height * 0.65,
+      amplitude: 34,
+      frequency: 0.9,
+      phase: -t * 0.85 + 1.0,
+      strokeWidth: 2.2,
+      gradientColors: [
+        const Color(0xFFFBBF24).withValues(alpha: 0.18),
+        const Color(0xFFF472B6).withValues(alpha: 0.16),
+        const Color(0xFF38BDF8).withValues(alpha: 0.15),
+      ],
+    );
+  }
+
+  void _drawOrb({
+    required Canvas canvas,
+    required Offset center,
+    required double radius,
+    required Color color,
+    required double opacity,
+  }) {
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: opacity.clamp(0.0, 1.0)),
+          color.withValues(alpha: (opacity * 0.5).clamp(0.0, 1.0)),
+          color.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(rect);
+
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  void _drawFlowingWave({
+    required Canvas canvas,
+    required Size size,
+    required double waveHeight,
+    required double amplitude,
+    required double frequency,
+    required double phase,
+    required double strokeWidth,
+    required List<Color> gradientColors,
+  }) {
+    final path = Path();
+    final step = size.width / 40;
+
+    path.moveTo(0, waveHeight + math.sin(phase) * amplitude);
+
+    for (double x = 0; x <= size.width + step; x += step) {
+      final normX = x / size.width;
+      final y = waveHeight + math.sin(normX * frequency * 2 * math.pi + phase) * amplitude;
+      path.lineTo(x, y);
     }
+
+    final waveRect = Rect.fromLTWH(0, waveHeight - amplitude, size.width, amplitude * 2);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..shader = LinearGradient(
+        colors: gradientColors,
+      ).createShader(waveRect);
+
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant _SplashStarfieldPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _AuroraWavesPainter oldDelegate) => true;
 }
