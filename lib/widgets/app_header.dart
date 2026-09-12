@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/app_data_provider.dart';
 import 'animated_pressable.dart';
 import 'notification_dialog.dart';
+import 'logout_confirmation_dialog.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -397,8 +398,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     InkWell(
                       onTap: () {
                         Navigator.pop(ctx);
-                        context.read<AppDataProvider>().reset();
-                        auth.logout();
+                        showLogoutConfirmationDialog(
+                          context,
+                          onConfirm: () {
+                            context.read<AppDataProvider>().reset();
+                            auth.logout();
+                          },
+                        );
                       },
                       child: const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),

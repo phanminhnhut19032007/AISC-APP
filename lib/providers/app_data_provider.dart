@@ -128,6 +128,7 @@ class AppDataProvider with ChangeNotifier {
   }
 
   void reset() {
+    stopEmergencyPolling();
     _buildings = [];
     _selectedBuilding = null;
     _rooms = [];
@@ -135,8 +136,11 @@ class AppDataProvider with ChangeNotifier {
     _invoices = [];
     _tickets = [];
     _orders = [];
+    _cart.clear();
+    _emergencyAlerts = [];
     _notifications = [];
     _activeEmergencyModal = null;
+    _errorMessage = null;
     notifyListeners();
   }
 

@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/app_data_provider.dart';
 import 'animated_pressable.dart';
 import 'siren_icon.dart';
+import 'logout_confirmation_dialog.dart';
 
 class AppDrawer extends StatelessWidget {
   final int currentIndex;
@@ -52,7 +53,7 @@ class AppDrawer extends StatelessWidget {
                     child: Image.asset(
                       'assets/logo.jpg',
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Center(
+                      errorBuilder: (_, _, _) => const Center(
                         child: Text(
                           'REASY',
                           style: TextStyle(
@@ -211,7 +212,6 @@ class AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: AnimatedPressable(
                 onTap: () {
-                  Navigator.pop(context); // Close drawer
                   _showLogoutConfirmation(context, auth);
                 },
                 scaleDown: 0.96,
@@ -343,32 +343,13 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _showLogoutConfirmation(BuildContext context, AuthProvider auth) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Đăng xuất', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng không?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<AppDataProvider>().reset();
-              auth.logout();
-            },
-            child: const Text('Đăng xuất'),
-          ),
-        ],
-      ),
+    showLogoutConfirmationDialog(
+      context,
+      onConfirm: () {
+        Navigator.pop(context); // Close drawer
+        context.read<AppDataProvider>().reset();
+        auth.logout();
+      },
     );
   }
 }
