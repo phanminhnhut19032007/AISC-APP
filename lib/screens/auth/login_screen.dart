@@ -673,6 +673,7 @@ class _AuroraWavesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) return;
     final t = animationValue * 2 * math.pi;
 
     // 1. Base gradient wash
@@ -709,7 +710,7 @@ class _AuroraWavesPainter extends CustomPainter {
       ),
       radius: size.width * 0.40,
       color: const Color(0xFF818CF8), // Soft Royal Indigo
-      opacity: 0.14 + math.cos(t) * 0.03,
+      opacity: 0.14 + math.cos(t * 0.03),
     );
 
     _drawOrb(
@@ -773,6 +774,7 @@ class _AuroraWavesPainter extends CustomPainter {
     required Color color,
     required double opacity,
   }) {
+    if (radius <= 0) return;
     final rect = Rect.fromCircle(center: center, radius: radius);
     final paint = Paint()
       ..shader = RadialGradient(
@@ -797,13 +799,15 @@ class _AuroraWavesPainter extends CustomPainter {
     required double strokeWidth,
     required List<Color> gradientColors,
   }) {
+    if (size.width <= 0 || size.height <= 0) return;
+
     final path = Path();
-    final step = size.width / 40;
+    final step = math.max(size.width / 40, 1.0);
 
     path.moveTo(0, waveHeight + math.sin(phase) * amplitude);
 
     for (double x = 0; x <= size.width + step; x += step) {
-      final normX = x / size.width;
+      final normX = (x / size.width).clamp(0.0, 1.0);
       final y = waveHeight + math.sin(normX * frequency * 2 * math.pi + phase) * amplitude;
       path.lineTo(x, y);
     }
