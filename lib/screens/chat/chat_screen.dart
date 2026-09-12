@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
@@ -27,11 +28,25 @@ class _ChatScreenState extends State<ChatScreen> {
   String _chatTarget = 'group'; // 'group' or member user_id
   String _chatTargetName = 'Kênh chung';
   bool _isLoading = false;
+  Timer? _pollingTimer;
+  bool _isBackgroundPolling = false;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    // Auto-poll every 3 seconds for instant real-time sync with Web
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _pollNewMessages();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _msgController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -71,6 +86,43 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _pollNewMessages() async {
+    if (_isBackgroundPolling || !mounted) return;
+    final buildingId = context.read<AppDataProvider>().selectedBuilding?.id;
+    if (buildingId == null) return;
+
+    _isBackgroundPolling = true;
+    try {
+      final recipientId = _chatTarget == 'group' ? null : _chatTarget;
+      final list = await _chatService.getMessages(buildingId, recipientId: recipientId);
+      if (mounted) {
+        // Compare with current messages (new messages count, last message ID, or recall status)
+        final bool isDifferentLength = list.length != _messages.length;
+        final bool isLastDiff = list.isNotEmpty &&
+            _messages.isNotEmpty &&
+            list.last.id != _messages.last.id;
+        final bool isRecalledDiff = list.any((m) {
+          final old = _messages.where((o) => o.id == m.id).firstOrNull;
+          return old != null && old.isRecalled != m.isRecalled;
+        });
+
+        if (isDifferentLength || isLastDiff || isRecalledDiff) {
+          final wasAtBottom = !_scrollController.hasClients ||
+              (_scrollController.position.maxScrollExtent - _scrollController.position.pixels < 100);
+          setState(() {
+            _messages = list;
+          });
+          if (wasAtBottom || isLastDiff) {
+            _scrollToBottom();
+          }
+        }
+      }
+    } catch (_) {
+    } finally {
+      _isBackgroundPolling = false;
     }
   }
 
