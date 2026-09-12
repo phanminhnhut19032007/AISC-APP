@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animated_pressable.dart';
 
@@ -20,44 +19,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   bool _obscurePassword = true;
   String? _errorMessage;
 
-  late AnimationController _particleController;
-  final List<_StarParticle> _stars = [];
-  final math.Random _random = math.Random();
+  late AnimationController _animController;
 
   @override
   void initState() {
     super.initState();
-    _particleController = AnimationController(
+    _animController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 12),
     )..repeat();
-
-    // Generate 65 background glowing stars matching the web's canvas
-    final starColors = [
-      const Color(0xFFFBD38D), // Amber / Gold
-      const Color(0xFF38BDF8), // Sky Blue
-      const Color(0xFF60A5FA), // Blue
-      const Color(0xFFC084FC), // Purple
-      const Color(0xFFFFFFFF), // White
-    ];
-
-    for (int i = 0; i < 65; i++) {
-      _stars.add(_StarParticle(
-        x: _random.nextDouble(),
-        y: _random.nextDouble(),
-        size: _random.nextDouble() * 3.0 + 1.2,
-        speedY: _random.nextDouble() * 0.04 + 0.015,
-        speedX: (_random.nextDouble() - 0.5) * 0.02,
-        opacity: _random.nextDouble() * 0.6 + 0.3,
-        color: starColors[_random.nextInt(starColors.length)],
-        pulseOffset: _random.nextDouble() * 2 * math.pi,
-      ));
-    }
   }
 
   @override
   void dispose() {
-    _particleController.dispose();
+    _animController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
     _roomCodeController.dispose();
@@ -109,77 +84,25 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF030712), // Slate 950 deep space
+      backgroundColor: const Color(0xFFF8FAFC), // Pure pearl white / light background
       body: Stack(
         children: [
-          // 1. Cosmic Glow Orbs in background
-          Positioned(
-            top: -50,
-            left: -50,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF2563EB).withValues(alpha: 0.2),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -60,
-            right: -60,
-            child: Container(
-              width: 360,
-              height: 360,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 200,
-            right: -80,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6366F1).withValues(alpha: 0.18),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
+          // 1. Dynamic Animated Aurora Mesh & Floating Waves Canvas
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _animController,
+              builder: (context, _) {
+                return CustomPaint(
+                  painter: _AuroraWavesPainter(
+                    animationValue: _animController.value,
+                  ),
+                  size: Size.infinite,
+                );
+              },
             ),
           ),
 
-          // 2. Animated Particle Stars Canvas
-          AnimatedBuilder(
-            animation: _particleController,
-            builder: (context, _) {
-              return CustomPaint(
-                painter: _StarFieldPainter(
-                  stars: _stars,
-                  animationValue: _particleController.value,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
-
-          // 3. Foreground Content
+          // 2. Foreground Content
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -189,41 +112,46 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Glowing Logo Card
+                      // Elegant Logo Card with Soft Glow Halo
                       Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Soft glow halo
+                          // Soft pastel ambient halo
                           Container(
-                            width: 124,
-                            height: 88,
+                            width: 120,
+                            height: 84,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(26),
                               gradient: const LinearGradient(
-                                colors: [Color(0xFFF59E0B), Color(0xFF38BDF8), Color(0xFF2563EB)],
+                                colors: [
+                                  Color(0xFFFDE68A),
+                                  Color(0xFFBAE6FD),
+                                  Color(0xFF93C5FD),
+                                ],
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF38BDF8).withValues(alpha: 0.55),
-                                  blurRadius: 28,
-                                  spreadRadius: 4,
+                                  color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                                  blurRadius: 30,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
                           ),
-                          // White Card with Logo
+                          // White Card with crisp REASY Logo
                           Container(
-                            width: 116,
-                            height: 80,
+                            width: 114,
+                            height: 78,
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.35),
-                                  blurRadius: 16,
+                                  color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                                  blurRadius: 18,
                                   offset: const Offset(0, 6),
                                 ),
                               ],
@@ -233,17 +161,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               child: Image.asset(
                                 'assets/logo.jpg',
                                 fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => const Center(
+                                errorBuilder: (_, _, _) => const Center(
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(Icons.home_rounded, color: Color(0xFFF59E0B), size: 28),
                                       SizedBox(width: 4),
                                       Text(
-                                        'EASY',
+                                        'REASY',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w900,
-                                          fontSize: 20,
+                                          fontSize: 18,
                                           color: Color(0xFF0284C7),
                                         ),
                                       ),
@@ -265,15 +193,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const Text(
                             'Chào mừng đến ',
                             style: TextStyle(
-                              fontSize: 24,
+                              fontSize: 23,
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: Color(0xFF0F172A),
                               letterSpacing: -0.5,
                             ),
                           ),
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [Color(0xFFFDE68A), Color(0xFF7DD3FC), Color(0xFF60A5FA)],
+                              colors: [Color(0xFFD97706), Color(0xFF0284C7), Color(0xFF2563EB)],
                             ).createShader(bounds),
                             child: const Text(
                               'REASY',
@@ -287,41 +215,47 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                         ],
                       ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Hệ thống quản lý phòng trọ & cư dân thông minh',
+                        style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                      ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 26),
 
-                      // Glassmorphic Login Card
+                      // Pure White Modern Card
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.72),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.14),
+                            color: const Color(0xFFE2E8F0),
                             width: 1.2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.6),
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
                               blurRadius: 36,
                               offset: const Offset(0, 16),
                             ),
                             BoxShadow(
-                              color: const Color(0xFF38BDF8).withValues(alpha: 0.12),
-                              blurRadius: 24,
+                              color: const Color(0xFF38BDF8).withValues(alpha: 0.05),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: _selectedRole.isEmpty ? _buildRoleSelection() : _buildLoginForm(auth),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
 
                       // Footer text
                       const Text(
                         '© 2026 REASY • Nền tảng quản lý phòng trọ thế hệ mới',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -340,22 +274,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       children: [
         const Text(
           'Xác nhận vai trò truy cập',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
         ),
         const SizedBox(height: 6),
         const Text(
           'Vui lòng chọn cổng đăng nhập của bạn để tiếp tục',
-          style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
         ),
         const SizedBox(height: 20),
 
         // Option 1: Chủ trọ / Quản trị
         _buildRoleButton(
-          icon: Icons.person_outline_rounded,
-          iconColor: const Color(0xFF38BDF8),
-          iconBgColor: const Color(0xFF0284C7).withValues(alpha: 0.25),
-          hoverBorderColor: const Color(0xFF38BDF8).withValues(alpha: 0.4),
+          icon: Icons.admin_panel_settings_rounded,
+          iconColor: const Color(0xFF2563EB),
+          iconBgColor: const Color(0xFFEFF6FF),
+          borderColor: const Color(0xFFBFDBFE),
           title: 'Chủ trọ / Quản trị',
+          subtitle: 'Quản lý tòa nhà, hóa đơn, sự cố & cư dân',
           onTap: () => _selectRole('OWNER'),
         ),
 
@@ -363,11 +298,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
         // Option 2: Cư dân / Người thuê
         _buildRoleButton(
-          icon: Icons.people_outline_rounded,
-          iconColor: const Color(0xFFFBBF24),
-          iconBgColor: const Color(0xFFD97706).withValues(alpha: 0.25),
-          hoverBorderColor: const Color(0xFFFBBF24).withValues(alpha: 0.4),
+          icon: Icons.people_alt_rounded,
+          iconColor: const Color(0xFFD97706),
+          iconBgColor: const Color(0xFFFFFBEB),
+          borderColor: const Color(0xFFFDE68A),
           title: 'Cư dân / Người thuê',
+          subtitle: 'Xem hóa đơn, báo sự cố & tiện ích phòng',
           onTap: () => _selectRole('TENANT'),
         ),
       ],
@@ -378,19 +314,27 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     required IconData icon,
     required Color iconColor,
     required Color iconBgColor,
-    required Color hoverBorderColor,
+    required Color borderColor,
     required String title,
+    required String subtitle,
     required VoidCallback onTap,
   }) {
     return AnimatedPressable(
       onTap: onTap,
-      scaleDown: 0.96,
+      scaleDown: 0.97,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: hoverBorderColor, width: 1.2),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -400,21 +344,35 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               decoration: BoxDecoration(
                 color: iconBgColor,
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: borderColor, width: 0.8),
               ),
               child: Icon(icon, color: iconColor, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Icon(Icons.arrow_forward_rounded, size: 18, color: Color(0xFF64748B)),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF94A3B8)),
           ],
         ),
       ),
@@ -435,20 +393,31 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               onTap: () => setState(() => _selectedRole = ''),
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.arrow_back_rounded, size: 16, color: Color(0xFF94A3B8)),
+                child: const Icon(Icons.arrow_back_rounded, size: 16, color: Color(0xFF475569)),
               ),
             ),
-            Text(
-              'Đăng nhập: ${isOwner ? "Chủ trọ / Quản trị" : "Cư dân người thuê"}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: isOwner ? const Color(0xFF38BDF8) : const Color(0xFFFBBF24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isOwner ? const Color(0xFFEFF6FF) : const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isOwner ? const Color(0xFFBFDBFE) : const Color(0xFFFDE68A),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                isOwner ? 'Chủ trọ / Quản trị' : 'Cư dân người thuê',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: isOwner ? const Color(0xFF1D4ED8) : const Color(0xFFB45309),
+                ),
               ),
             ),
           ],
@@ -457,21 +426,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         const SizedBox(height: 18),
 
         // Phone Input
-        const Text('Số điện thoại đăng nhập', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFCBD5E1))),
+        const Text('Số điện thoại đăng nhập', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF334155))),
         const SizedBox(height: 6),
         TextField(
           controller: _phoneController,
           keyboardType: TextInputType.phone,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: '0901234567',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-            prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF94A3B8), size: 18),
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+            prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF64748B), size: 18),
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.08),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF38BDF8), width: 1.5)),
+            fillColor: const Color(0xFFF8FAFC),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isOwner ? const Color(0xFF2563EB) : const Color(0xFFF59E0B), width: 1.6)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),
@@ -480,20 +449,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
         // Room Code Input (Tenant only)
         if (!isOwner) ...[
-          const Text('Mã phòng trọ của bạn', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFCBD5E1))),
+          const Text('Mã phòng trọ của bạn', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF334155))),
           const SizedBox(height: 6),
           TextField(
             controller: _roomCodeController,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
               hintText: 'Ví dụ: 101, 202, 301...',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-              prefixIcon: const Icon(Icons.home_outlined, color: Color(0xFF94A3B8), size: 18),
+              hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+              prefixIcon: const Icon(Icons.home_outlined, color: Color(0xFF64748B), size: 18),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.08),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFFBBF24), width: 1.5)),
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFF59E0B), width: 1.6)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             ),
           ),
@@ -501,29 +470,29 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ],
 
         // Password Input
-        const Text('Mật khẩu', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFCBD5E1))),
+        const Text('Mật khẩu', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF334155))),
         const SizedBox(height: 6),
         TextField(
           controller: _passwordController,
           obscureText: _obscurePassword,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: '••••••••',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF94A3B8), size: 18),
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF64748B), size: 18),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: const Color(0xFF94A3B8),
+                color: const Color(0xFF64748B),
                 size: 18,
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.08),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isOwner ? const Color(0xFF38BDF8) : const Color(0xFFFBBF24), width: 1.5)),
+            fillColor: const Color(0xFFF8FAFC),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isOwner ? const Color(0xFF2563EB) : const Color(0xFFF59E0B), width: 1.6)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),
@@ -534,18 +503,18 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.danger.withValues(alpha: 0.15),
+              color: const Color(0xFFFEF2F2),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+              border: Border.all(color: const Color(0xFFFECACA)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 16),
+                const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                    style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -553,7 +522,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
         ],
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Submit Button with Morphing Animation & Success State
         AnimatedPressable(
@@ -622,19 +591,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             key: const ValueKey('normal_state'),
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
+                              const Text(
                                 'Đăng nhập vào hệ thống',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 14.5,
                                   fontWeight: FontWeight.w800,
-                                  color: isOwner ? Colors.white : const Color(0xFF030712),
+                                  color: Colors.white,
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Icon(
+                              const Icon(
                                 Icons.arrow_forward_rounded,
                                 size: 16,
-                                color: isOwner ? Colors.white : const Color(0xFF030712),
+                                color: Colors.white,
                               ),
                             ],
                           ),
@@ -645,27 +614,47 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
         const SizedBox(height: 14),
 
-        // Demo Account Box
+        // Demo Account Box (Clean Light Theme)
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: isOwner ? const Color(0xFFEFF6FF) : const Color(0xFFFFFBEB),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(
+              color: isOwner ? const Color(0xFFBFDBFE) : const Color(0xFFFDE68A),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '💡 Tài khoản demo sẵn:',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8)),
+              Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline_rounded,
+                    size: 14,
+                    color: isOwner ? const Color(0xFF2563EB) : const Color(0xFFD97706),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Tài khoản demo sẵn:',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      color: isOwner ? const Color(0xFF1D4ED8) : const Color(0xFFB45309),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
                 isOwner
                     ? 'SĐT: 0901234567 | Mật khẩu: smartrent123'
                     : 'SĐT: 0912345001 | Pass: tenant123 | Phòng: 101',
-                style: const TextStyle(fontSize: 11, color: Colors.white70),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: isOwner ? const Color(0xFF1E40AF) : const Color(0xFF92400E),
+                ),
               ),
             ],
           ),
@@ -675,58 +664,162 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 }
 
-class _StarParticle {
-  double x;
-  double y;
-  final double size;
-  final double speedY;
-  final double speedX;
-  double opacity;
-  final Color color;
-  final double pulseOffset;
-
-  _StarParticle({
-    required this.x,
-    required this.y,
-    required this.size,
-    required this.speedY,
-    required this.speedX,
-    required this.opacity,
-    required this.color,
-    required this.pulseOffset,
-  });
-}
-
-class _StarFieldPainter extends CustomPainter {
-  final List<_StarParticle> stars;
+/// Custom painter that paints vibrant yet elegant fluid aurora mesh orbs & graceful waves
+/// on a pristine white backdrop.
+class _AuroraWavesPainter extends CustomPainter {
   final double animationValue;
 
-  _StarFieldPainter({required this.stars, required this.animationValue});
+  _AuroraWavesPainter({required this.animationValue});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint();
+    final t = animationValue * 2 * math.pi;
 
-    for (final star in stars) {
-      // Calculate animated position
-      final currentY = (star.y - animationValue * star.speedY * 5) % 1.0;
-      final currentX = (star.x + math.sin(animationValue * 2 * math.pi + star.pulseOffset) * 0.015) % 1.0;
+    // 1. Base gradient wash
+    final bgRect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final bgPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFFFFFFF),
+          Color(0xFFF8FAFC),
+          Color(0xFFF1F5F9),
+        ],
+      ).createShader(bgRect);
+    canvas.drawRect(bgRect, bgPaint);
 
-      final px = currentX * size.width;
-      final py = currentY * size.height;
+    // 2. Animated Floating Radiant Pastel Orbs
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.15 + math.sin(t) * 45,
+        size.height * 0.18 + math.cos(t * 0.8) * 35,
+      ),
+      radius: size.width * 0.45,
+      color: const Color(0xFF38BDF8), // Sky Cyan
+      opacity: 0.16 + math.sin(t) * 0.03,
+    );
 
-      final pulse = (math.sin(animationValue * 4 * math.pi + star.pulseOffset) + 1) / 2;
-      final currentOpacity = (star.opacity * (0.6 + 0.4 * pulse)).clamp(0.1, 1.0);
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.88 + math.cos(t * 0.9) * 40,
+        size.height * 0.28 + math.sin(t * 1.1) * 30,
+      ),
+      radius: size.width * 0.40,
+      color: const Color(0xFF818CF8), // Soft Royal Indigo
+      opacity: 0.14 + math.cos(t) * 0.03,
+    );
 
-      paint.color = star.color.withValues(alpha: currentOpacity);
-      canvas.drawCircle(Offset(px, py), star.size, paint);
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.82 + math.sin(t * 1.2) * 50,
+        size.height * 0.80 + math.cos(t * 0.7) * 40,
+      ),
+      radius: size.width * 0.50,
+      color: const Color(0xFFFBBF24), // Sunshine Amber
+      opacity: 0.15 + math.sin(t * 0.8) * 0.03,
+    );
 
-      // Glow halo
-      paint.color = star.color.withValues(alpha: currentOpacity * 0.35);
-      canvas.drawCircle(Offset(px, py), star.size * 2.2, paint);
+    _drawOrb(
+      canvas: canvas,
+      center: Offset(
+        size.width * 0.10 + math.cos(t * 0.7) * 35,
+        size.height * 0.82 + math.sin(t * 0.9) * 35,
+      ),
+      radius: size.width * 0.42,
+      color: const Color(0xFF34D399), // Mint Green
+      opacity: 0.12 + math.cos(t * 1.1) * 0.03,
+    );
+
+    // 3. Flowing Sinusoidal Silk Waves
+    _drawFlowingWave(
+      canvas: canvas,
+      size: size,
+      waveHeight: size.height * 0.38,
+      amplitude: 28,
+      frequency: 1.2,
+      phase: t,
+      strokeWidth: 2.0,
+      gradientColors: [
+        const Color(0xFF38BDF8).withValues(alpha: 0.22),
+        const Color(0xFF818CF8).withValues(alpha: 0.18),
+        const Color(0xFFFBBF24).withValues(alpha: 0.15),
+      ],
+    );
+
+    _drawFlowingWave(
+      canvas: canvas,
+      size: size,
+      waveHeight: size.height * 0.65,
+      amplitude: 34,
+      frequency: 0.9,
+      phase: -t * 0.85 + 1.0,
+      strokeWidth: 2.2,
+      gradientColors: [
+        const Color(0xFFFBBF24).withValues(alpha: 0.18),
+        const Color(0xFFF472B6).withValues(alpha: 0.16),
+        const Color(0xFF38BDF8).withValues(alpha: 0.15),
+      ],
+    );
+  }
+
+  void _drawOrb({
+    required Canvas canvas,
+    required Offset center,
+    required double radius,
+    required Color color,
+    required double opacity,
+  }) {
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: opacity.clamp(0.0, 1.0)),
+          color.withValues(alpha: (opacity * 0.5).clamp(0.0, 1.0)),
+          color.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(rect);
+
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  void _drawFlowingWave({
+    required Canvas canvas,
+    required Size size,
+    required double waveHeight,
+    required double amplitude,
+    required double frequency,
+    required double phase,
+    required double strokeWidth,
+    required List<Color> gradientColors,
+  }) {
+    final path = Path();
+    final step = size.width / 40;
+
+    path.moveTo(0, waveHeight + math.sin(phase) * amplitude);
+
+    for (double x = 0; x <= size.width + step; x += step) {
+      final normX = x / size.width;
+      final y = waveHeight + math.sin(normX * frequency * 2 * math.pi + phase) * amplitude;
+      path.lineTo(x, y);
     }
+
+    final waveRect = Rect.fromLTWH(0, waveHeight - amplitude, size.width, amplitude * 2);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..shader = LinearGradient(
+        colors: gradientColors,
+      ).createShader(waveRect);
+
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant _StarFieldPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _AuroraWavesPainter oldDelegate) => true;
 }
