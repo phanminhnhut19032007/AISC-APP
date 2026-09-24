@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -397,22 +399,53 @@ class AppDataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> placeUniPackOrder({required String roomNumber}) async {
+  Future<void> placeUniPackOrder({
+    required String roomNumber,
+    String receiverName = '',
+    String receiverPhone = '',
+    String paymentMethod = 'COD',
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final deadline = now + 60 * 60 * 1000; // 1 hour cancel window
+    final orderDateStr = DateFormat('HH:mm:ss dd/MM/yyyy').format(DateTime.now());
+
     for (final item in _cart) {
+      final randId = 'UP${100000 + Random().nextInt(900000)}';
       final order = UniPackOrder(
-        id: 'ord_${DateTime.now().millisecondsSinceEpoch}_${item.product.id}',
+        id: randId,
         productName: item.product.name,
         roomNumber: roomNumber,
+        receiverName: receiverName,
+        receiverPhone: receiverPhone,
         quantity: item.quantity,
         totalPrice: item.totalPrice,
-        status: 'PENDING',
-        createdAt: DateTime.now().toIso8601String(),
+        paymentMethod: paymentMethod,
+        status: 'PENDING_SUNDAY_DELIVERY',
+        isPaid: false,
+        createdAt: now,
+        cancelDeadline: deadline,
+        orderDate: orderDateStr,
       );
       await _uniPackService.saveOrder(order);
     }
     _cart.clear();
     await fetchOrders();
     notifyListeners();
+  }
+
+  Future<void> toggleOrderPayment(String orderId) async {
+    await _uniPackService.togglePaymentStatus(orderId);
+    await fetchOrders();
+    notifyListeners();
+  }
+
+  Future<bool> cancelUniPackOrder(String orderId) async {
+    final success = await _uniPackService.cancelOrder(orderId);
+    if (success) {
+      await fetchOrders();
+      notifyListeners();
+    }
+    return success;
   }
 
   void addToCart(UniPackProduct product, {int quantity = 1}) {
@@ -466,7 +499,7 @@ class AppDataProvider with ChangeNotifier {
         }
 
         // UniPack orders notifications for owner
-        for (final o in _orders.where((o) => o.status == 'PENDING')) {
+        for (final o in _orders.where((o) => o.status == 'PENDING' || o.status == 'PENDING_SUNDAY_DELIVERY')) {
           final id = 'order_${o.id}';
           list.add(AppNotificationModel(
             id: id,
@@ -475,7 +508,9 @@ class AppDataProvider with ChangeNotifier {
             type: 'ORDER',
             targetUrl: '/unipack',
             isRead: readIds.contains(id),
-            createdAt: o.createdAt,
+            createdAt: o.orderDate.isNotEmpty
+                ? o.orderDate
+                : DateTime.fromMillisecondsSinceEpoch(o.createdAt).toIso8601String(),
           ));
         }
       } else {
