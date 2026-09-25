@@ -43,12 +43,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     setState(() {
       _selectedRole = role;
       _errorMessage = null;
-      if (role == 'OWNER') {
-        _phoneController.text = '0901234567';
-        _passwordController.text = 'smartrent123';
-      } else {
-        _phoneController.text = '0912345001';
-        _passwordController.text = 'tenant123';
+      _phoneController.clear();
+      _passwordController.clear();
+      if (role == 'TENANT') {
         _roomCodeController.text = '101';
       }
     });
@@ -433,7 +430,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           keyboardType: TextInputType.phone,
           style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
-            hintText: '0901234567',
+            hintText: '0388430402',
             hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
             prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF64748B), size: 18),
             filled: true,
@@ -481,10 +478,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
             prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF64748B), size: 18),
             suffixIcon: IconButton(
+              tooltip: _obscurePassword ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                 color: const Color(0xFF64748B),
-                size: 18,
+                size: 20,
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
@@ -609,54 +607,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
               ),
             ),
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Demo Account Box (Clean Light Theme)
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isOwner ? const Color(0xFFEFF6FF) : const Color(0xFFFFFBEB),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isOwner ? const Color(0xFFBFDBFE) : const Color(0xFFFDE68A),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.lightbulb_outline_rounded,
-                    size: 14,
-                    color: isOwner ? const Color(0xFF2563EB) : const Color(0xFFD97706),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Tài khoản demo sẵn:',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: isOwner ? const Color(0xFF1D4ED8) : const Color(0xFFB45309),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                isOwner
-                    ? 'SĐT: 0901234567 | Mật khẩu: smartrent123'
-                    : 'SĐT: 0912345001 | Pass: tenant123 | Phòng: 101',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: isOwner ? const Color(0xFF1E40AF) : const Color(0xFF92400E),
-                ),
-              ),
-            ],
           ),
         ),
       ],
