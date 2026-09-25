@@ -54,13 +54,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> login(String phone, String password, {String? roomCode}) async {
+  Future<bool> login(String phone, String password, {String? roomCode, String? role}) async {
     _isLoading = true;
     _isLoginSuccess = false;
     notifyListeners();
 
     try {
-      final user = await _authService.login(phone, password);
+      final user = await _authService.login(phone, password, role: role);
       if (roomCode != null && roomCode.isNotEmpty) {
         _tenantRoomCode = roomCode;
         final prefs = await SharedPreferences.getInstance();
@@ -115,7 +115,7 @@ class AuthProvider with ChangeNotifier {
     // Verify old password
     final phoneKey = _currentUser!.phone ?? _currentUser!.id;
     final savedPass = await _authService.getSavedPassword(phoneKey);
-    final defaultDemoPass = _currentUser!.isTenant ? 'tenant123' : 'smartrent123';
+    final defaultDemoPass = _currentUser!.isTenant ? 'MinhNhut2' : 'MinhNhut1';
     final expectedPass = savedPass ?? defaultDemoPass;
 
     if (oldPassword != expectedPass) {

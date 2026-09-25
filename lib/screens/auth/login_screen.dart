@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     try {
       final auth = context.read<AuthProvider>();
-      await auth.login(phone, password, roomCode: roomCode);
+      await auth.login(phone, password, roomCode: roomCode, role: _selectedRole);
     } catch (e) {
       setState(() {
         _errorMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
