@@ -4,6 +4,8 @@ class ApiConstants {
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
+  static const String sendOtp = '/auth/send-otp';
+  static const String verifyOtp = '/auth/verify-otp';
   static const String me = '/auth/me';
   static const String changePassword = '/auth/change-password';
   static const String fcmToken = '/auth/fcm-token';
@@ -35,6 +37,7 @@ class ApiConstants {
   static const String tokenKey = 'smartrent_token';
   static const String userKey = 'smartrent_user';
   static const String demoTenantRoomKey = 'demo_tenant_room_code';
+  static const String demoTenantBuildingKey = 'demo_tenant_building_code';
   static const String readNotifIdsKey = 'renteasy_read_notif_ids';
   static const String unipackOrdersKey = 'unipack_orders';
   static const String unipackCartKey = 'unipack_cart';

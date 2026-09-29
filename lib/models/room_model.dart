@@ -2,6 +2,7 @@ class RoomModel {
   final String id;
   final String buildingId;
   final String roomNumber;
+  final String roomCode;
   final int floor;
   final double? areaSqm;
   final double baseRent;
@@ -16,6 +17,7 @@ class RoomModel {
     required this.id,
     required this.buildingId,
     required this.roomNumber,
+    String? roomCode,
     this.floor = 1,
     this.areaSqm,
     this.baseRent = 0,
@@ -25,13 +27,15 @@ class RoomModel {
     this.parkingFee = 0,
     this.status = 'AVAILABLE',
     this.thumbnailUrl,
-  });
+  }) : roomCode = roomCode ?? 'P$roomNumber';
 
   factory RoomModel.fromJson(Map<String, dynamic> json) {
+    final rNum = json['room_number']?.toString() ?? '';
     return RoomModel(
       id: json['id'] ?? '',
       buildingId: json['building_id'] ?? '',
-      roomNumber: json['room_number']?.toString() ?? '',
+      roomNumber: rNum,
+      roomCode: json['room_code'] ?? 'P$rNum',
       floor: json['floor'] ?? 1,
       areaSqm: json['area_sqm'] != null ? (json['area_sqm'] as num).toDouble() : null,
       baseRent: json['base_rent'] != null ? (json['base_rent'] as num).toDouble() : 0,
@@ -49,6 +53,7 @@ class RoomModel {
       'id': id,
       'building_id': buildingId,
       'room_number': roomNumber,
+      'room_code': roomCode,
       'floor': floor,
       'area_sqm': areaSqm,
       'base_rent': baseRent,

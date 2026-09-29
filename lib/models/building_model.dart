@@ -7,6 +7,7 @@ class BuildingModel {
   final int totalFloors;
   final String? description;
   final String? thumbnailUrl;
+  final String buildingCode;
   final bool isDeleted;
 
   BuildingModel({
@@ -18,6 +19,7 @@ class BuildingModel {
     this.totalFloors = 1,
     this.description,
     this.thumbnailUrl,
+    this.buildingCode = 'MC892',
     this.isDeleted = false,
   });
 
@@ -31,6 +33,7 @@ class BuildingModel {
       totalFloors: json['total_floors'] ?? 1,
       description: json['description'],
       thumbnailUrl: json['thumbnail_url'],
+      buildingCode: json['building_code'] ?? json['code'] ?? 'MC892',
       isDeleted: json['is_deleted'] ?? false,
     );
   }
@@ -45,6 +48,7 @@ class BuildingModel {
       'total_floors': totalFloors,
       'description': description,
       'thumbnail_url': thumbnailUrl,
+      'building_code': buildingCode,
       'is_deleted': isDeleted,
     };
   }

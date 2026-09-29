@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/formatters.dart';
-import '../../models/invoice_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_data_provider.dart';
 import '../../widgets/animated_pressable.dart';

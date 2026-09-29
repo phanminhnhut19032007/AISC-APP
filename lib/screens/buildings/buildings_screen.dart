@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/formatters.dart';
-import '../../models/building_model.dart';
 import '../../models/room_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_data_provider.dart';
@@ -242,6 +242,41 @@ class _BuildingsScreenState extends State<BuildingsScreen> {
                                 _buildPill('${data.selectedBuilding!.totalFloors} Tầng', AppColors.primary),
                                 const SizedBox(width: 6),
                                 _buildPill('${data.rooms.length} Phòng', AppColors.success),
+                                const SizedBox(width: 6),
+                                InkWell(
+                                  onTap: () {
+                                    final code = data.selectedBuilding!.buildingCode;
+                                    Clipboard.setData(ClipboardData(text: code));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Đã sao chép mã tòa: $code'),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.key_rounded, size: 11, color: Color(0xFF2563EB)),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          'Mã: ${data.selectedBuilding!.buildingCode}',
+                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8), fontFamily: 'monospace'),
+                                        ),
+                                        const SizedBox(width: 3),
+                                        const Icon(Icons.copy_rounded, size: 10, color: Color(0xFF3B82F6)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -489,7 +524,39 @@ class _BuildingsScreenState extends State<BuildingsScreen> {
             ],
           ),
 
-          const SizedBox(height: 6),
+          const SizedBox(height: 3),
+          // Room Code Copy Pill
+          InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: room.roomCode));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Đã sao chép mã phòng: ${room.roomCode}'), duration: const Duration(seconds: 2)),
+              );
+            },
+            borderRadius: BorderRadius.circular(5),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.key_rounded, size: 10, color: Color(0xFFD97706)),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Mã: ${room.roomCode}',
+                    style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, fontFamily: 'monospace', color: Color(0xFF475569)),
+                  ),
+                  const SizedBox(width: 3),
+                  const Icon(Icons.copy_rounded, size: 9, color: Color(0xFF94A3B8)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
 
           // Rent & Floor Info
           Column(

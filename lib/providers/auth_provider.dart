@@ -11,7 +11,8 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isLoginSuccess = false;
   String? _successUserName;
-  String? _tenantRoomCode = '101';
+  String? _tenantRoomCode = 'P101A';
+  String? _tenantBuildingCode = 'MC892';
   bool _isLoadingAccount = false;
   String? _loadingUserName;
 
@@ -21,6 +22,7 @@ class AuthProvider with ChangeNotifier {
   String? get successUserName => _successUserName;
   bool get isAuthenticated => _currentUser != null;
   String? get tenantRoomCode => _tenantRoomCode;
+  String? get tenantBuildingCode => _tenantBuildingCode;
   bool get isLoadingAccount => _isLoadingAccount;
   String? get loadingUserName => _loadingUserName;
 
@@ -39,7 +41,8 @@ class AuthProvider with ChangeNotifier {
 
     _currentUser = await _authService.getSavedUser();
     final prefs = await SharedPreferences.getInstance();
-    _tenantRoomCode = prefs.getString(ApiConstants.demoTenantRoomKey) ?? '101';
+    _tenantRoomCode = prefs.getString(ApiConstants.demoTenantRoomKey) ?? 'P101A';
+    _tenantBuildingCode = prefs.getString(ApiConstants.demoTenantBuildingKey) ?? 'MC892';
 
     _isLoading = false;
     notifyListeners();
@@ -54,24 +57,40 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> login(String phone, String password, {String? roomCode, String? role}) async {
+  Future<bool> login(
+    String phone,
+    String password, {
+    String? roomCode,
+    String? buildingCode,
+    String? role,
+  }) async {
     _isLoading = true;
     _isLoginSuccess = false;
     notifyListeners();
 
     try {
-      final user = await _authService.login(phone, password, role: role);
+      final user = await _authService.login(
+        phone,
+        password,
+        role: role,
+        buildingCode: buildingCode,
+        roomCode: roomCode,
+      );
       if (roomCode != null && roomCode.isNotEmpty) {
         _tenantRoomCode = roomCode;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(ApiConstants.demoTenantRoomKey, roomCode);
+      }
+      if (buildingCode != null && buildingCode.isNotEmpty) {
+        _tenantBuildingCode = buildingCode;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(ApiConstants.demoTenantBuildingKey, buildingCode);
       }
       _isLoginSuccess = true;
       _successUserName = user.fullName;
       _isLoading = false;
       notifyListeners();
 
-      // Short celebration then trigger animated account loading screen with % progress
       await Future.delayed(const Duration(milliseconds: 350));
       _currentUser = user;
       _isLoadingAccount = true;
@@ -85,6 +104,85 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  /// Yêu cầu gửi mã OTP
+  Future<String> requestOtp(String phone) async {
+    return await _authService.requestOtp(phone);
+  }
+
+  /// Xác thực OTP và đăng ký
+  Future<bool> register({
+    required String fullName,
+    required String phone,
+    required String password,
+    required String role,
+    required String otpCode,
+    KycDocumentsModel? kycDocs,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final user = await _authService.verifyOtpAndRegister(
+        fullName: fullName,
+        phone: phone,
+        password: password,
+        role: role,
+        otpCode: otpCode,
+        kycDocs: kycDocs,
+      );
+
+      _isLoginSuccess = true;
+      _successUserName = user.fullName;
+      _isLoading = false;
+      notifyListeners();
+
+      await Future.delayed(const Duration(milliseconds: 350));
+      _currentUser = user;
+      _isLoadingAccount = true;
+      _loadingUserName = user.fullName;
+      _isLoginSuccess = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Đăng nhập mạng xã hội
+  Future<bool> loginWithOAuth(String provider, String role) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final user = await _authService.loginWithSocial(provider, role);
+      _isLoginSuccess = true;
+      _successUserName = user.fullName;
+      _isLoading = false;
+      notifyListeners();
+
+      await Future.delayed(const Duration(milliseconds: 350));
+      _currentUser = user;
+      _isLoadingAccount = true;
+      _loadingUserName = user.fullName;
+      _isLoginSuccess = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Cập nhật KYC
+  Future<void> updateKyc(KycDocumentsModel kycDocs, {String? status}) async {
+    final updated = await _authService.updateKycStatus(kycDocs, status: status);
+    _currentUser = updated;
+    notifyListeners();
   }
 
   Future<void> changePassword({
@@ -105,37 +203,33 @@ class AuthProvider with ChangeNotifier {
     }
 
     if (newPassword != confirmPassword) {
-      throw Exception('Mật khẩu xác nhận không khớp với mật khẩu mới');
+      throw Exception('Mật khẩu xác nhận không khớp');
     }
 
-    if (oldPassword == newPassword) {
-      throw Exception('Mật khẩu mới không được trùng với mật khẩu cũ');
-    }
+    _isLoading = true;
+    notifyListeners();
 
-    // Verify old password
-    final phoneKey = _currentUser!.phone ?? _currentUser!.id;
-    final savedPass = await _authService.getSavedPassword(phoneKey);
-    final defaultDemoPass = _currentUser!.isTenant ? 'MinhNhut2' : 'MinhNhut1';
-    final expectedPass = savedPass ?? defaultDemoPass;
-
-    if (oldPassword != expectedPass) {
-      throw Exception('Mật khẩu cũ không chính xác');
-    }
-
-    // Call live API to update backend password
     try {
       await _authService.changePassword(oldPassword, newPassword);
-    } catch (_) {}
-
-    // Save new password locally
-    await _authService.savePassword(phoneKey, newPassword);
-    notifyListeners();
+      if (_currentUser?.phone != null) {
+        await _authService.savePassword(_currentUser!.phone!, newPassword);
+      }
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Future<void> logout() async {
     await _authService.logout();
     _currentUser = null;
-    _isLoadingAccount = false;
     notifyListeners();
+  }
+
+  String defaultDemoPass(String role) {
+    return role == 'TENANT' ? 'MinhNhut2' : 'MinhNhut1';
   }
 }

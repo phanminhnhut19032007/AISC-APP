@@ -6,6 +6,7 @@ import '../providers/app_data_provider.dart';
 import 'animated_pressable.dart';
 import 'notification_dialog.dart';
 import 'logout_confirmation_dialog.dart';
+import 'kyc_verification_dialog.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -147,25 +148,64 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB),
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: Center(
-                    child: Text(
-                      (user?.fullName.isNotEmpty == true)
-                          ? user!.fullName.trim().split(' ').last[0].toUpperCase()
-                          : 'T',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB),
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Center(
+                        child: Text(
+                          (user?.fullName.isNotEmpty == true)
+                              ? user!.fullName.trim().split(' ').last[0].toUpperCase()
+                              : 'T',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    if (user?.isOwner == true)
+                      user?.isVerified == true
+                          ? Positioned(
+                              bottom: -2,
+                              right: -2,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2563EB),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 1.5),
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.check, size: 8.5, color: Colors.white),
+                                ),
+                              ),
+                            )
+                          : Positioned(
+                              top: -3,
+                              right: -3,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF59E0B),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 1.5),
+                                ),
+                                child: const Center(
+                                  child: Text('!', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w900)),
+                                ),
+                              ),
+                            ),
+                  ],
                 ),
                 const SizedBox(width: 6),
                 ConstrainedBox(
@@ -175,15 +215,26 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        user?.isTenant == true ? 'Phòng ${auth.tenantRoomCode ?? "101"}' : (user?.fullName ?? 'Admin'),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              user?.isTenant == true ? 'Phòng ${auth.tenantRoomCode ?? "101"}' : (user?.fullName ?? 'Admin'),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (user?.isOwner == true && user?.isVerified == true) ...[
+                            const SizedBox(width: 2),
+                            const Icon(Icons.verified_rounded, size: 11, color: Color(0xFF2563EB)),
+                          ],
+                        ],
                       ),
                       Text(
                         user?.isTenant == true ? 'Người thuê' : 'Chủ trọ',
@@ -341,6 +392,108 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 ),
               ),
+
+              // KYC Status Banner for Owner
+              if (user?.isOwner == true)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(10, 10, 10, 2),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: user?.isVerified == true
+                        ? const Color(0xFFEFF6FF)
+                        : const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: user?.isVerified == true
+                          ? const Color(0xFFBFDBFE)
+                          : const Color(0xFFFDE68A),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: user?.isVerified == true
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFFD97706),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            user?.isVerified == true
+                                ? Icons.verified_rounded
+                                : Icons.priority_high_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.isVerified == true
+                                  ? 'Đã xác minh chính chủ'
+                                  : 'Hồ sơ đang chờ duyệt',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: user?.isVerified == true
+                                    ? const Color(0xFF1E3A8A)
+                                    : const Color(0xFF78350F),
+                              ),
+                            ),
+                            Text(
+                              user?.isVerified == true
+                                  ? 'CCCD & Sổ hồng đã duyệt'
+                                  : 'Đang rà soát CCCD & Sổ hồng',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                color: user?.isVerified == true
+                                    ? const Color(0xFF3B82F6)
+                                    : const Color(0xFFB45309),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          showKycVerificationDialog(context);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: user?.isVerified == true
+                                ? Colors.white
+                                : const Color(0xFFD97706),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: user?.isVerified == true
+                                  ? const Color(0xFFBFDBFE)
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Text(
+                            user?.isVerified == true ? 'Xem hồ sơ' : 'Kiểm tra',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: user?.isVerified == true
+                                  ? const Color(0xFF1D4ED8)
+                                  : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
               // White Menu Body
               Material(
